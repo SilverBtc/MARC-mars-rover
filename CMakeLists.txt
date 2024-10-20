@@ -1,16 +1,26 @@
 cmake_minimum_required(VERSION 3.27)
-project(untitled1 C)
 
+project(mars_rover C)
 set(CMAKE_C_STANDARD 11)
 
-add_executable(untitled1 main.c
-        loc.c
-        loc.h
-        moves.c
-        moves.h
-        map.c
-        map.h
-        queue.c
-        queue.h
-        stack.c
-        stack.h)
+include_directories(include)
+
+set(SOURCES
+    src/main.c
+    src/loc.c
+    src/moves.c
+    src/map.c
+    src/queue.c
+    src/stack.c
+)
+
+add_executable(mars_rover ${SOURCES})
+
+
+### How to run ###
+
+# Compile (in /build):
+# cmake .. && make
+
+# Run:
+# ./mars_rover 
