@@ -1,7 +1,52 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "map.h"
 #include "loc.h"
 
+char* arrayrandomproba() {
+    char *arrayrandomproba = (char*)malloc(9 * sizeof(char));
+    if (arrayrandomproba == NULL) {
+        return NULL;
+    }
+
+    int SIZE = 100;
+    int F_10 = 22, F_20 = 15, F_30 = 7;
+    int R_10 = 7, TR = 21, TL = 21, TB = 7;
+
+    srand(time(0));
+
+    char arrayloop[SIZE];
+    int index = 0;
+
+    for (int i = 0; i < F_10; i++) arrayloop[index++] = 'A';
+    for (int i = 0; i < F_20; i++) arrayloop[index++] = 'B';
+    for (int i = 0; i < F_30; i++) arrayloop[index++] = 'C';
+    for (int i = 0; i < R_10; i++) arrayloop[index++] = 'R';
+    for (int i = 0; i < TR; i++) arrayloop[index++] = 'T';
+    for (int i = 0; i < TL; i++) arrayloop[index++] = 'L';
+    for (int i = 0; i < TB; i++) arrayloop[index++] = 'B';
+
+    for (int i = 0; i < 9; i++) {
+        int randomnumber = rand() % SIZE;
+        arrayrandomproba[i] = arrayloop[randomnumber];
+
+        if (arrayrandomproba[i] == 'A') F_10--;
+        if (arrayrandomproba[i] == 'B') F_20--;
+        if (arrayrandomproba[i] == 'C') F_30--;
+        if (arrayrandomproba[i] == 'R') R_10--;
+        if (arrayrandomproba[i] == 'T') TR--;
+        if (arrayrandomproba[i] == 'L') TL--;
+        if (arrayrandomproba[i] == 'B') TB--;
+
+        for (int j = randomnumber; j < SIZE - 1; j++) {
+            arrayloop[j] = arrayloop[j + 1];
+        }
+        SIZE--;
+    }
+
+    return arrayrandomproba;
+}
 
 typedef struct s_node
 {
@@ -127,6 +172,18 @@ int main() {
     root->children[0]->children[1] = createNode(25);
 
     displayTree(&tree);
+
+
+    char* result = arrayrandomproba();
+
+    if (result != NULL) {
+        printf("Generated array: ");
+        for (int i = 0; i < 9; i++) {
+            printf("%c", result[i]);
+        }
+        printf("\n");
+        free(result);
+    }
 
     return 0;
 }
