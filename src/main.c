@@ -169,7 +169,7 @@ struct s_localisation calculate_node(struct s_localisation loc, t_node* node, ch
 
     cost = map.costs[loc.pos.x][loc.pos.y];
     node->value = cost;
-    return loc
+    return loc;
 }
 
 
