@@ -7,3 +7,5 @@
 10	155	7512242246283248	CMakeFiles/mars_rover.dir/src/stack.c.obj	67524da2ae6d2f4a
 9	92	7531190686263345	CMakeFiles/mars_rover.dir/src/tree.c.obj	6f8bac90157e7810
 3	157	7512242246303258	CMakeFiles/mars_rover.dir/src/queue.c.obj	6d2e05e1e96630c
+2	103	7531276149042618	CMakeFiles/mars_rover.dir/src/main.c.obj	eae16d499830f8b7
+103	271	7531276150686422	mars_rover.exe	4c67c326b3a7a849
