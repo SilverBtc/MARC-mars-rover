@@ -77,15 +77,11 @@ t_node *createNode(int val){
     return node;
 }
 
-void createTreeRecursive(t_node* parent, int depth, int maxDepth, int numChildren) {
-    if (depth > maxDepth) {
-        return;  
-    }
-
-    for (int i = 0; i < numChildren; i++) {
-        t_node* child = createNode(0);
-        parent->children[i] = child;
-        createTreeRecursive(child, depth + 1, maxDepth, numChildren); 
+void createBranch(t_node *parent_node, int nChild, int depth){
+    for(int i = 0; i<nChild; i++){
+        parent_node->children[i] = createNode(777);
+        if(depth == 4) return;
+        createBranch(parent_node->children[i], nChild-1, depth+1);
     }
 }
 
@@ -96,8 +92,9 @@ void createTree(char* move, t_localisation localisation, t_map map) {
     tree.root = root;
     int maxDepth = 8;
     int numChildren = 9;
+    createBranch(tree.root,numChildren, maxDepth);
 
-    createTreeRecursive(tree.root, 1, maxDepth, numChildren);
+
     displayTree(&tree);
 }
 
