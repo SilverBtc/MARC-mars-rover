@@ -91,13 +91,6 @@ build CMakeFiles/mars_rover.dir/src/stack.c.obj: C_COMPILER__mars_rover_unscanne
   OBJECT_DIR = CMakeFiles\mars_rover.dir
   OBJECT_FILE_DIR = CMakeFiles\mars_rover.dir\src
 
-build CMakeFiles/mars_rover.dir/src/tree.c.obj: C_COMPILER__mars_rover_unscanned_Debug C$:/Users/pokem/Documents/GitHub/MARC-mars-rover/src/tree.c || cmake_object_order_depends_target_mars_rover
-  DEP_FILE = CMakeFiles\mars_rover.dir\src\tree.c.obj.d
-  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/pokem/Documents/GitHub/MARC-mars-rover/include
-  OBJECT_DIR = CMakeFiles\mars_rover.dir
-  OBJECT_FILE_DIR = CMakeFiles\mars_rover.dir\src
-
 
 # =============================================================================
 # Link build statements for EXECUTABLE target mars_rover
@@ -106,7 +99,7 @@ build CMakeFiles/mars_rover.dir/src/tree.c.obj: C_COMPILER__mars_rover_unscanned
 #############################################
 # Link the executable mars_rover.exe
 
-build mars_rover.exe: C_EXECUTABLE_LINKER__mars_rover_Debug CMakeFiles/mars_rover.dir/src/main.c.obj CMakeFiles/mars_rover.dir/src/loc.c.obj CMakeFiles/mars_rover.dir/src/moves.c.obj CMakeFiles/mars_rover.dir/src/map.c.obj CMakeFiles/mars_rover.dir/src/queue.c.obj CMakeFiles/mars_rover.dir/src/stack.c.obj CMakeFiles/mars_rover.dir/src/tree.c.obj
+build mars_rover.exe: C_EXECUTABLE_LINKER__mars_rover_Debug CMakeFiles/mars_rover.dir/src/main.c.obj CMakeFiles/mars_rover.dir/src/loc.c.obj CMakeFiles/mars_rover.dir/src/moves.c.obj CMakeFiles/mars_rover.dir/src/map.c.obj CMakeFiles/mars_rover.dir/src/queue.c.obj CMakeFiles/mars_rover.dir/src/stack.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\mars_rover.dir

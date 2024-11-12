@@ -25,7 +25,7 @@ char* arrayrandomproba() {
     for (int i = 0; i < R_10; i++) arrayloop[index++] = 'R';
     for (int i = 0; i < TR; i++) arrayloop[index++] = 'T';
     for (int i = 0; i < TL; i++) arrayloop[index++] = 'L';
-    for (int i = 0; i < TB; i++) arrayloop[index++] = 'B';
+    for (int i = 0; i < TB; i++) arrayloop[index++] = 'J';
 
     for (int i = 0; i < 9; i++) {
         int randomnumber = rand() % SIZE;
@@ -37,7 +37,7 @@ char* arrayrandomproba() {
         if (arrayrandomproba[i] == 'R') R_10--;
         if (arrayrandomproba[i] == 'T') TR--;
         if (arrayrandomproba[i] == 'L') TL--;
-        if (arrayrandomproba[i] == 'B') TB--;
+        if (arrayrandomproba[i] == 'J') TB--;
 
         for (int j = randomnumber; j < SIZE - 1; j++) {
             arrayloop[j] = arrayloop[j + 1];
@@ -120,7 +120,57 @@ void displayTree(t_tree *tree) {
     displayNode(tree->root, 0);
 }
 
+struct s_localisation calculate_node(struct s_localisation loc, t_node* node, char order, t_map map){
 
+    int distance = 0;
+    int cost;
+    switch (order) {
+        case 'A':
+            distance = 1;
+            break;
+        case 'B':
+            distance = 2;
+            break;
+        case 'C':
+            distance = 3;
+            break;
+        case 'R':
+            distance = -1;
+            break;
+        case 'T':
+            loc.ori = (loc.ori + 1)%4;
+            break;
+        case 'L':
+            loc.ori = (loc.ori - 1)%4;
+            break;
+        case'J':
+            loc.ori = (loc.ori + 2)%4;
+        break;
+        default:
+            break;
+    }
+
+    switch (loc.ori) {
+        case NORTH:
+            loc.pos.y += distance;
+            break;
+        case SOUTH:
+            loc.pos.y -= distance;
+            break;
+        case EAST:
+            loc.pos.x += distance;
+            break;
+        case WEST:
+            loc.pos.x -= distance;
+            break;
+        default:
+            break;
+    }
+
+    cost = map.costs[loc.pos.x][loc.pos.y];
+    node->value = cost;
+    return loc
+}
 
 
 
