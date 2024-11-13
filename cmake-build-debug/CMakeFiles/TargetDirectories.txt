@@ -1,3 +1,0 @@
-C:/Users/pokem/Documents/GitHub/MARC-mars-rover/cmake-build-debug/CMakeFiles/mars_rover.dir
-C:/Users/pokem/Documents/GitHub/MARC-mars-rover/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/pokem/Documents/GitHub/MARC-mars-rover/cmake-build-debug/CMakeFiles/rebuild_cache.dir
