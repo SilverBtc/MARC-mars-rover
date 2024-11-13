@@ -79,13 +79,13 @@ int calculate_node(char* t_path,t_localisation localisation, t_map *map) {
     char *arraymoove = (char*)malloc(size* sizeof(char));
     for(int j = 0; j < size; j++) {
         switch(t_path[j]) {
-            case 'A': arraymoove[j] = 'F_10';
-            case 'B': arraymoove[j] = 'F_20';
-            case 'C': arraymoove[j] = 'F_30';
-            case 'R': arraymoove[j] = 'B_10';
-            case 'T': arraymoove[j] = 'TR';
-            case 'L': arraymoove[j] = 'TL';
-            case 'J': arraymoove[j] = 'TB';
+            case 'A': arraymoove[j] = "F_10";
+            case 'B': arraymoove[j] = "F_20";
+            case 'C': arraymoove[j] = "F_30";
+            case 'R': arraymoove[j] = "B_10";
+            case 'T': arraymoove[j] = "TR";
+            case 'L': arraymoove[j] = "TL";
+            case 'J': arraymoove[j] = "TB";
         }
     }
     for(int i = 0; i < size; i++) {
@@ -134,7 +134,7 @@ void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_loca
 
         // depth manager
         if(depth == 4) return;
-        createBranch(parent_node->children[0], nChild-1, depth+1, move, localisation);
+        createBranch(parent_node->children[0], nChild-1, depth+1, move, localisation, map);
     }
 }
 
@@ -145,7 +145,7 @@ void createTree(char* move, t_localisation localisation, t_map map) {
     tree.root = root;
     int nChild = 9;
     int depth = 1;
-    createBranch(tree.root, nChild, depth, move, localisation,map);
+    createBranch(tree.root, nChild, depth, move, localisation, map);
     // char* moveremaining = move;
     // for(int i=0; i <= 9; i++) {
     //     tree.root->children[i] = move[i];
