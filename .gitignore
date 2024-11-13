@@ -1,3 +1,4 @@
 .vscode
 build/*
 !build
+cmake-build-debug
