@@ -66,18 +66,10 @@ t_tree createEmptyTree(){
     return temp;
 }
 
-int calculate_node(char* t_path,t_localisation localisation) {
-    t_localisation pantomloc;
-    pantomloc.ori = localisation.ori;
-    pantomloc.pos = localisation.pos;
-    pantomloc.pos.x = localisation.pos.x;
-    pantomloc.pos.y = localisation.pos.y;
-    int nodevalue = 9;
-    for(int i = 0; i < sizeof(t_path); i++) {
 
-}
 
-t_node *createNode(char* t_path,t_localisation localisation){
+
+t_node *createNode(char* t_path, t_localisation localisation){
     t_node *node = malloc(sizeof(t_node));
     if (node == NULL) {
         fprintf(stderr, "Erreur d'allocation de mémoire\n");
@@ -90,14 +82,15 @@ t_node *createNode(char* t_path,t_localisation localisation){
     for(int i = 0; i < 5; i++){node->path[i] = t_path[i];}
     node->val = calculate_node(localisation,t_path);;
     for (int i = 0; i < 9; i++){node->children[i] = NULL;}
+    printf("%c ", t_path);
     return node;
 }
 
-void createBranch(t_node *parent_node, int nChild, int depth){
+void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation){
     for(int i = 0; i<nChild; i++){
-        parent_node->children[i] = createNode(777,);
+        parent_node->children[i] = createNode(move[i], localisation);
         if(depth == 4) return;
-        createBranch(parent_node->children[i], nChild-1, depth+1);
+        createBranch(parent_node->children[i], nChild-1, depth+1, move, t_localisation localisation);
     }
 }
 
@@ -116,7 +109,8 @@ void createTree(char* move, t_localisation localisation, t_map map) {
 
 
 
-}
+    //displayTree(&tree);
+
 
 void displayNode(t_node *node, int depth) {
     if (node == NULL) return;
@@ -243,17 +237,20 @@ int main() {
 
     displayTree(&tree);
 
-
+    //char *result = (char*)malloc(9 * sizeof(char));
     char* result = arrayrandomproba();
-
+    
     if (result != NULL) {
         printf("Generated array: ");
         for (int i = 0; i < 9; i++) {
             printf("%c", result[i]);
         }
         printf("\n");
-        free(result);
+        //free(result);
     }
 
+
+    createTree(result, loc, map);
+    free(result);
     return 0;
 }
