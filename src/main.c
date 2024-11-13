@@ -122,9 +122,9 @@ void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_loca
     for(int i = 0; i<nChild; i++){
         // t_node manager
         int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-        char firstMove[5] = (char*)malloc(9 * sizeof(char));
+        char firstMove[5];
         strncpy(firstMove, move, i);
-        parent_node->children[i] = createNode(move[i], localisation, map);
+        parent_node->children[i] = createNode(&move[i], localisation, map);
         for (int i = 0; i < 9; i++) {
             if (firstMove[i] == "\0") break;
             parent_node->children[i]->path = firstMove[i];
