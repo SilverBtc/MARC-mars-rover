@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "map.h"
 #include "loc.h"
 
@@ -86,7 +87,7 @@ t_node *createNode(char* t_path, t_localisation localisation){
     return node;
 }
 
-void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation){
+void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation, t_map map){
     for(int i = 0; i<nChild; i++){
         // t_node manager
         int costRover = map.costs[localisation.pos.x][localisation.pos.y];
@@ -110,7 +111,7 @@ void createTree(char* move, t_localisation localisation, t_map map) {
     tree.root = root;
     int nChild = 9;
     int depth = 1;
-    createBranch(tree.root, nChild, depth, move, localisation);
+    createBranch(tree.root, nChild, depth, move, localisation,map);
     // char* moveremaining = move;
     // for(int i=0; i <= 9; i++) {
     //     tree.root->children[i] = move[i];
