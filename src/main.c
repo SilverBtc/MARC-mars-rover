@@ -88,28 +88,38 @@ t_node *createNode(char* t_path, t_localisation localisation){
 
 void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation){
     for(int i = 0; i<nChild; i++){
+        // t_node manager
+        int costRover = map.costs[localisation.pos.x][localisation.pos.y];
+        char firstMove[5];
+        strncpy(firstMove, move, i);
         parent_node->children[i] = createNode(move[i], localisation);
+        parent_node->children[i]->path = firstMove;
+        parent_node->children[i]->val = 777;
+
+
+        // depth manager
         if(depth == 4) return;
-        createBranch(parent_node->children[i], nChild-1, depth+1, move, t_localisation localisation);
+        createBranch(parent_node->children[0], nChild-1, depth+1, move, localisation);
     }
 }
 
 void createTree(char* move, t_localisation localisation, t_map map) {
     t_tree tree = createEmptyTree();
     int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-    t_node *root = createNode(costRover);
+    t_node *root = createNode(move, localisation);
     tree.root = root;
-    int maxDepth = 8;
-    int numChildren = 9;
-    createBranch(tree.root,numChildren, maxDepth);
-    char* moveremaining = move;
-    for(int i=0; i <= 9; i++) {
-        tree.root->children[i] = move[i];
-    }
+    int nChild = 9;
+    int depth = 1;
+    createBranch(tree.root, nChild, depth, move, localisation);
+    // char* moveremaining = move;
+    // for(int i=0; i <= 9; i++) {
+    //     tree.root->children[i] = move[i];
 
+    // }
 
 
     //displayTree(&tree);
+}
 
 
 void displayNode(t_node *node, int depth) {
