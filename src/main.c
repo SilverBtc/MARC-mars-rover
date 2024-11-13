@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "map.h"
 #include "loc.h"
 #include "moves.h"
@@ -99,6 +100,38 @@ int calculate_node(char* t_path,t_localisation localisation, t_map *map) {
     return number;
 }
 
+int calculate_node(char* t_path,t_localisation localisation) {
+    t_localisation pantomloc;
+    pantomloc.ori = localisation.ori;
+    pantomloc.pos = localisation.pos;
+    pantomloc.pos.x = localisation.pos.x;
+    pantomloc.pos.y = localisation.pos.y;
+    int nodevalue = 9;
+    int size = sizeof(t_path);
+    char *arraymoove = (char*)malloc(size* sizeof(char));
+    for(int j = 0; j < size; j++) {
+        switch(t_path[j]) {
+            case 'A': arraymoove[j] = 'F_10';
+            case 'B': arraymoove[j] = 'F_20';
+            case 'C': arraymoove[j] = 'F_30';
+            case 'R': arraymoove[j] = 'B_10';
+            case 'T': arraymoove[j] = 'TR';
+            case 'L': arraymoove[j] = 'TL';
+            case 'J': arraymoove[j] = 'TB';
+        }
+    }
+    for(int i = 0; i < size; i++) {
+        if(t_path[i] = 'A' || t_path[i] == 'B' || t_path[i] == 'C'|| t_path[i] == 'R' ){
+            pantomloc = translate(pantomloc, arraymoove[i]);
+        }
+        if(t_path[i]='T' || t_path[i]=='L' || t_path[i]=='J') {
+            pantomloc.ori = rotate(pantomloc.ori, arraymoove[i]);
+        }
+    }
+    int number = map.costs[localisation.pos.y][localisation.pos.x];
+    return number;
+}
+
 
 
 t_node *createNode(char* t_path, t_localisation localisation,t_map *map){
@@ -118,30 +151,44 @@ t_node *createNode(char* t_path, t_localisation localisation,t_map *map){
     return node;
 }
 
-void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation){
+void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation, t_map map){
     for(int i = 0; i<nChild; i++){
+        // t_node manager
+        int costRover = map.costs[localisation.pos.x][localisation.pos.y];
+        char firstMove[5];
+        strncpy(firstMove, move, i);
         parent_node->children[i] = createNode(move[i], localisation);
+        for (int i = 0; i < 9; i++) {
+            if (firstMove[i] == "\0") break;
+            printf("%c", result[i]);
+        }
+        parent_node->children[i]->path = firstMove;
+        parent_node->children[i]->val = 777;
+
+
+        // depth manager
         if(depth == 4) return;
-        createBranch(parent_node->children[i], nChild-1, depth+1, move, t_localisation localisation);
+        createBranch(parent_node->children[0], nChild-1, depth+1, move, localisation);
     }
 }
 
 void createTree(char* move, t_localisation localisation, t_map map) {
     t_tree tree = createEmptyTree();
-    int costRover = map.costs[localisation.pos.y][localisation.pos.x];
-    t_node *root = createNode(costRover);
+    int costRover = map.costs[localisation.pos.x][localisation.pos.y];
+    t_node *root = createNode(move, localisation);
     tree.root = root;
-    int maxDepth = 8;
-    int numChildren = 9;
-    createBranch(tree.root,numChildren, maxDepth);
-    char* moveremaining = move;
-    for(int i=0; i <= 9; i++) {
-        tree.root->children[i] = move[i];
-    }
+    int nChild = 9;
+    int depth = 1;
+    createBranch(tree.root, nChild, depth, move, localisation,map);
+    // char* moveremaining = move;
+    // for(int i=0; i <= 9; i++) {
+    //     tree.root->children[i] = move[i];
 
+    // }
 
 
     //displayTree(&tree);
+}
 
 
 void displayNode(t_node *node, int depth) {
