@@ -2,3 +2,8 @@
 build/*
 !build
 cmake-build-debug
+*.cmake
+CMakeCache.txt
+mars_rover
+build
+CMakeFiles
