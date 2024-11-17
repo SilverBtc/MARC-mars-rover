@@ -6,8 +6,18 @@
 #include "loc.h"
 #include "moves.h"
 
+
+void printPath(const char *prefix, const char *string) {
+    printf("%s ", prefix);
+    if (string != NULL)
+        printf("%s", string);
+    else 
+        printf("(null)");
+    printf("\n");
+}
+
 char* arrayrandomproba() {
-    char *arrayrandomproba = (char*)malloc(9 * sizeof(char));
+    char *arrayrandomproba = (char*)malloc(6 * sizeof(char));
     if (arrayrandomproba == NULL) {
         return NULL;
     }
@@ -29,17 +39,19 @@ char* arrayrandomproba() {
     for (int i = 0; i < TL; i++) arrayloop[index++] = 'L';
     for (int i = 0; i < TB; i++) arrayloop[index++] = 'J';
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 5; i++) {
         int randomnumber = rand() % SIZE;
         arrayrandomproba[i] = arrayloop[randomnumber];
 
-        if (arrayrandomproba[i] == 'A') F_10--;
-        if (arrayrandomproba[i] == 'B') F_20--;
-        if (arrayrandomproba[i] == 'C') F_30--;
-        if (arrayrandomproba[i] == 'R') R_10--;
-        if (arrayrandomproba[i] == 'T') TR--;
-        if (arrayrandomproba[i] == 'L') TL--;
-        if (arrayrandomproba[i] == 'J') TB--;
+        switch (arrayrandomproba[i]) {
+            case 'A': F_10--; break;
+            case 'B': F_20--; break;
+            case 'C': F_30--; break;
+            case 'R': R_10--; break;
+            case 'T': TR--; break;
+            case 'L': TL--; break;
+            case 'J': TB--; break;
+        }
 
         for (int j = randomnumber; j < SIZE - 1; j++) {
             arrayloop[j] = arrayloop[j + 1];
@@ -68,7 +80,7 @@ t_tree createEmptyTree(){
     return temp;
 }
 
-int calculate_node(char* t_path,t_localisation localisation, t_map map) {
+int calculate_node(char* t_path, t_localisation localisation, t_map map) {
     t_localisation phantomloc;
     phantomloc.ori = localisation.ori;
     phantomloc.pos = localisation.pos;
@@ -89,10 +101,10 @@ int calculate_node(char* t_path,t_localisation localisation, t_map map) {
         }
     }
     for(int i = 0; i < size; i++) {
-        if(t_path[i] = 'A' || t_path[i] == 'B' || t_path[i] == 'C'|| t_path[i] == 'R' ){
+        if(t_path[i] == 'A' || t_path[i] == 'B' || t_path[i] == 'C'|| t_path[i] == 'R' ){
             phantomloc = translate(phantomloc, arraymoove[i]);
         }
-        if(t_path[i]='T' || t_path[i]=='L' || t_path[i]=='J') {
+        if(t_path[i] == 'T' || t_path[i] == 'L' || t_path[i] == 'J') {
             phantomloc.ori = rotate(phantomloc.ori, arraymoove[i]);
         }
     }
@@ -104,17 +116,24 @@ int calculate_node(char* t_path,t_localisation localisation, t_map map) {
 t_node *createNode(char* t_path, t_localisation localisation, t_map map){
     t_node *node = malloc(sizeof(t_node));
     if (node == NULL) {
-        fprintf(stderr, "Erreur d'allocation de mémoire\n");
+        fprintf(stderr, "Erreur: allocation de mémoire\n");
         exit(1);
     }
-    for (int i = 0; i < 5; i++){if(sizeof(t_path)>5) {
-        fprintf(stderr, "Erreur to much element\n");
+
+    printPath("aaaa", t_path);
+
+    int length = strlen(t_path);
+    printf("all Move: %d\n", length);
+    if (length > 6) {
+        fprintf(stderr, "Erreur: trop d'éléments dans t_path\n");
         exit(1);
-    }}
+    }
+
     for(int i = 0; i < 5; i++){node->path[i] = t_path[i];}
     node->val = calculate_node(t_path, localisation, map);;
+    printPath("bbbb", t_path);
     for (int i = 0; i < 9; i++){node->children[i] = NULL;}
-    printf("%c ", t_path);
+
     return node;
 }
 
@@ -122,26 +141,44 @@ void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_loca
     for(int i = 0; i<nChild; i++){
         // t_node manager
         int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-        char firstMove[5];
-        strncpy(firstMove, move, i);
+        char firstMove[6];
+        // strncpy(firstMove, move, i);
+        strncpy(firstMove, move, sizeof(firstMove) - 1);
+        firstMove[sizeof(firstMove) - 1] = '\0';
+
+        if (move != NULL) {
+            printf("Move: ");
+            for (int i = 0; i < 5; i++) {
+                printf("%c", move[i]);
+            }
+            printf("\n");
+        }
         parent_node->children[i] = createNode(&move[i], localisation, map);
-        for (int i = 0; i < 9; i++) {
+
+        for (int j = 0; j < 9; j++) {
             if (firstMove[i] == "\0") break;
-            parent_node->children[i]->path = firstMove[i];
+            parent_node->children[i]->path[j] = malloc(2 * sizeof(char));
+            if (parent_node->children[i]->path[j] == NULL) {
+                fprintf(stderr, "Erreur allocation\n");
+                exit(1);
+            }
+            strcpy(parent_node->children[i]->path[j], &firstMove[j]);
         }
         parent_node->children[i]->val = 777;
 
 
         // depth manager
-        if(depth == 4) return;
-        createBranch(parent_node->children[0], nChild-1, depth+1, move, localisation, map);
+        if(depth == 4)
+            return;
+        createBranch(parent_node->children[i], nChild - 1, depth + 1, move, localisation, map);
     }
 }
 
 void createTree(char* move, t_localisation localisation, t_map map) {
+    
     t_tree tree = createEmptyTree();
     int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-    t_node *root = createNode(move, localisation);
+    t_node *root = createNode(move, localisation, map);
     tree.root = root;
     int nChild = 9;
     int depth = 1;
@@ -163,7 +200,7 @@ void displayNode(t_node *node, int depth) {
     for (int i = 0; i < depth; i++) {
         printf("  ");
     }
-    printf("Value: %d\n", node->value);
+    printf("Value: %d\n", node->val);
 
     for (int i = 0; i < 9; i++) {
         displayNode(node->children[i], depth + 1);
@@ -179,10 +216,10 @@ void displayTree(t_tree *tree) {
     displayNode(tree->root, 0);
 }
 
-struct s_localisation calculate_node(struct s_localisation loc, t_node* node, char order, t_map map){
-
+struct s_localisation calculate_new_location(struct s_localisation loc, t_node* node, char order, t_map map) {
     int distance = 0;
     int cost;
+
     switch (order) {
         case 'A':
             distance = 1;
@@ -197,14 +234,14 @@ struct s_localisation calculate_node(struct s_localisation loc, t_node* node, ch
             distance = -1;
             break;
         case 'T':
-            loc.ori = (loc.ori + 1)%4;
+            loc.ori = (loc.ori + 1) % 4;
             break;
         case 'L':
-            loc.ori = (loc.ori - 1)%4;
+            loc.ori = (loc.ori - 1 + 4) % 4;
             break;
-        case'J':
-            loc.ori = (loc.ori + 2)%4;
-        break;
+        case 'J':
+            loc.ori = (loc.ori + 2) % 4;
+            break;
         default:
             break;
     }
@@ -227,8 +264,9 @@ struct s_localisation calculate_node(struct s_localisation loc, t_node* node, ch
     }
 
     cost = map.costs[loc.pos.x][loc.pos.y];
-    node->value = cost;
+    node->val = cost;
     return loc;
+
 /*
  * Faut regarder que l'on sorte pas du jeu et qu'on traverse pas de crevasse :)
  */
@@ -241,7 +279,7 @@ struct s_localisation calculate_node(struct s_localisation loc, t_node* node, ch
 
 
 int main() {
-    t_map map = createMapFromFile("../maps/example1.map");
+    t_map map = createMapFromFile("./maps/example1.map");
     printf("Map created with dimensions %d x %d\n", map.y_max, map.x_max);
     for (int i = 0; i < map.y_max; i++)
     {
@@ -271,29 +309,29 @@ int main() {
     printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
 
 
-    t_tree tree = createEmptyTree();
-    t_node *root = createNode(5);
-    tree.root = root;
+    // t_tree tree = createEmptyTree();
+    // t_node *root = createNode(5);
+    // tree.root = root;
 
-    root->children[0] = createNode(10);
-    root->children[1] = createNode(15);
-    root->children[0]->children[0] = createNode(20);
-    root->children[0]->children[1] = createNode(25);
+    // root->children[0] = createNode(10);
+    // root->children[1] = createNode(15);
+    // root->children[0]->children[0] = createNode(20);
+    // root->children[0]->children[1] = createNode(25);
 
-    displayTree(&tree);
+    // displayTree(&tree);
 
     //char *result = (char*)malloc(9 * sizeof(char));
     char* result = arrayrandomproba();
     
-    if (result != NULL) {
-        printf("Generated array: ");
-        for (int i = 0; i < 9; i++) {
-            printf("%c", result[i]);
-        }
-        printf("\n");
-        //free(result);
-    }
-
+    // if (result != NULL) {
+    //     printf("Generated array: ");
+    //     for (int i = 0; i < 5; i++) {
+    //         printf("%c", result[i]);
+    //     }
+    //     printf("\n");
+    //     //free(result);
+    // }
+    printPath("Generated array: ", result);
 
     createTree(result, loc, map);
     free(result);
