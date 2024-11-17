@@ -81,35 +81,30 @@ t_tree createEmptyTree(){
 }
 
 int calculate_node(char* t_path, t_localisation localisation, t_map map) {
-    t_localisation phantomloc;
-    phantomloc.ori = localisation.ori;
-    phantomloc.pos = localisation.pos;
-    phantomloc.pos.x = localisation.pos.x;
-    phantomloc.pos.y = localisation.pos.y;
+    t_localisation phantomloc = localisation;
     int nodevalue = 9;
-    int size = sizeof(t_path);
-    char *arraymoove = (char*)malloc(size* sizeof(char));
-    for(int j = 0; j < size; j++) {
-        switch(t_path[j]) {
-            case 'A': arraymoove[j] = "F_10";
-            case 'B': arraymoove[j] = "F_20";
-            case 'C': arraymoove[j] = "F_30";
-            case 'R': arraymoove[j] = "B_10";
-            case 'T': arraymoove[j] = "TR";
-            case 'L': arraymoove[j] = "TL";
-            case 'J': arraymoove[j] = "TB";
+    int size = strlen(t_path);
+    
+    for (int i = 0; i < size; i++) {
+        switch(t_path[i]) {
+            case 'A': phantomloc = translate(phantomloc, F_10); break;
+            case 'B': phantomloc = translate(phantomloc, F_20); break;
+            case 'C': phantomloc = translate(phantomloc, F_30); break;
+            case 'R': phantomloc = translate(phantomloc, B_10); break;
+            case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
+            case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
+            case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
+            default: break;
         }
     }
-    for(int i = 0; i < size; i++) {
-        if(t_path[i] == 'A' || t_path[i] == 'B' || t_path[i] == 'C'|| t_path[i] == 'R' ){
-            phantomloc = translate(phantomloc, arraymoove[i]);
-        }
-        if(t_path[i] == 'T' || t_path[i] == 'L' || t_path[i] == 'J') {
-            phantomloc.ori = rotate(phantomloc.ori, arraymoove[i]);
-        }
+    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 10 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 10) {
+        printf("Erreur : Rover out of range\n");
+        return 999999;  // Imposible Path
     }
-    int number = map.costs[localisation.pos.y][localisation.pos.x];
-    return number;
+
+    int cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+    printf("Position: (%d, %d), Orientation %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori);
+    return cost;
 }
 
 
@@ -120,8 +115,6 @@ t_node *createNode(char* t_path, t_localisation localisation, t_map map){
         exit(1);
     }
 
-    printPath("aaaa", t_path);
-
     int length = strlen(t_path);
     printf("all Move: %d\n", length);
     if (length > 6) {
@@ -130,10 +123,11 @@ t_node *createNode(char* t_path, t_localisation localisation, t_map map){
     }
 
     for(int i = 0; i < 5; i++){node->path[i] = t_path[i];}
-    node->val = calculate_node(t_path, localisation, map);;
-    printPath("bbbb", t_path);
+    node->val = calculate_node(t_path, localisation, map);
+    
     for (int i = 0; i < 9; i++){node->children[i] = NULL;}
 
+    displayNode(node, 0);
     return node;
 }
 
@@ -146,13 +140,7 @@ void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_loca
         strncpy(firstMove, move, sizeof(firstMove) - 1);
         firstMove[sizeof(firstMove) - 1] = '\0';
 
-        if (move != NULL) {
-            printf("Move: ");
-            for (int i = 0; i < 5; i++) {
-                printf("%c", move[i]);
-            }
-            printf("\n");
-        }
+        printPath("\nMove:", move);
         parent_node->children[i] = createNode(&move[i], localisation, map);
 
         for (int j = 0; j < 9; j++) {
@@ -164,7 +152,7 @@ void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_loca
             }
             strcpy(parent_node->children[i]->path[j], &firstMove[j]);
         }
-        parent_node->children[i]->val = 777;
+        // parent_node->children[i]->val = 777;
 
 
         // depth manager
@@ -183,14 +171,36 @@ void createTree(char* move, t_localisation localisation, t_map map) {
     int nChild = 9;
     int depth = 1;
     createBranch(tree.root, nChild, depth, move, localisation, map);
-    // char* moveremaining = move;
-    // for(int i=0; i <= 9; i++) {
-    //     tree.root->children[i] = move[i];
+    
+    // Search Better path
+    t_node *optimalNode = NULL;
+    int minCost = 50;
+    char* optimalPath = NULL;
 
-    // }
+    findOptimalPath(tree.root, &optimalNode, &minCost, &optimalPath);
 
+    printf("\n\n### Final Best Path Rover Find ###\n");
+    if (optimalPath != NULL) {
+        printf("Optimal path: %s\n", optimalPath);
+        printf("Cost: %d\n", minCost);
+        printf("( ˶ˆᗜˆ˵ )\n");
+    } else
+        printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
+}
 
-    //displayTree(&tree);
+// Reste plus qu'a fix cette fonction car deja j'ai pas compris comment ca peut marcher et j'arrive pas a return tout le path dcp force a nous
+void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
+    if (node == NULL) return;
+
+    if (node->val < *minCost) {
+        *minCost = node->val;
+        *optimalNode = node;
+        *optimalPath = node->path;
+    }
+
+    for (int i = 0; i < 9; i++) {
+        findOptimalPath(node->children[i], optimalNode, minCost, optimalPath);
+    }
 }
 
 
@@ -200,7 +210,7 @@ void displayNode(t_node *node, int depth) {
     for (int i = 0; i < depth; i++) {
         printf("  ");
     }
-    printf("Value: %d\n", node->val);
+    printf("Value(%d): %d\n", depth, node->val);
 
     for (int i = 0; i < 9; i++) {
         displayNode(node->children[i], depth + 1);
@@ -334,6 +344,7 @@ int main() {
     printPath("Generated array: ", result);
 
     createTree(result, loc, map);
+
     free(result);
     return 0;
 }
