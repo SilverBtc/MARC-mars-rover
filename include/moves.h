@@ -52,7 +52,7 @@ void updateLocalisation(t_localisation *, t_move);
 
 t_localisation translate(t_localisation, t_move);
 
-t_orientation rotate(t_orientation, t_move );
+t_orientation rotate(t_orientation, t_move);
 
 
 
