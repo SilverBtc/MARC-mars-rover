@@ -17,7 +17,7 @@
  * @param map : the map
  * @return : the position of the base station
  */
-t_position getBaseStationPosition(t_map);
+// t_position getBaseStationPosition(t_map);
 
 /**
  * @brief : function to calculate costs of the map  from the base station
