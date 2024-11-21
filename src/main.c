@@ -107,7 +107,7 @@ int calculate_node(char* t_path, t_map map) {
             default: break;
         }
     }
-    if (phantomloc.pos.x < 0 || phantomloc.pos.x > 7 || phantomloc.pos.y < 0 || phantomloc.pos.y > 6) {
+    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
         printf("Erreur : Rover out of range\n");
         return 999999;  // Imposible Path
     }
@@ -164,6 +164,23 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
         generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map);
     }
 }
+
+
+// Reste plus qu'a fix cette fonction car deja j'ai pas compris comment ca peut marcher et j'arrive pas a return tout le path dcp force a nous
+void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
+    if (node == NULL) return;
+
+    if (node->val < *minCost) {
+        *minCost = node->val;
+        *optimalNode = node;
+        *optimalPath = node->path;
+    }
+
+    for (int i = 0; i < 9; i++) {
+        findOptimalPath(node->children[i], optimalNode, minCost, optimalPath);
+    }
+}
+
 
 
 
@@ -325,16 +342,33 @@ int main() {
     printf("Time taken : %f\n", cpu_time_used);
 
 
-    // printPath("Generated array: ", alphabet);
-    // printf("Map created with dimensions %d x %d (current cost: %d)\n", map.y_max, map.x_max, map.costs[3][4]);
-    // for (int i = 0; i < map.y_max; i++)
-    // {
-    //     for (int j = 0; j < map.x_max; j++)
-    //     {
-    //         printf("%-5d ", map.costs[i][j]);
-    //     }
-    //     printf("\n");
-    // }
+    // Search Better path
+    t_node *optimalNode = NULL;
+    int minCost = 50;
+    char* optimalPath = NULL;
+
+    findOptimalPath(tree.root, &optimalNode, &minCost, &optimalPath);
+
+    printPath("Generated array: ", alphabet);
+    printf("\n\n### Final Best Path Rover Find ###\n");
+    if (optimalPath != NULL) {
+        printf("Optimal path: %s\n", optimalPath);
+        printf("Cost: %d\n", minCost);
+        printf("( ˶ˆᗜˆ˵ )\n");
+        calculate_node(optimalPath, map);
+    } else
+        printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
+
+
+    printf("Map created with dimensions %d x %d (current cost: %d)\n", map.y_max, map.x_max, map.costs[3][4]);
+    for (int i = 0; i < map.y_max; i++)
+    {
+        for (int j = 0; j < map.x_max; j++)
+        {
+            printf("%-5d ", map.costs[i][j]);
+        }
+        printf("\n");
+    }
     free(alphabet);
     return 0;
 }
