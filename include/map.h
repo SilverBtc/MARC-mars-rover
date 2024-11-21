@@ -13,6 +13,7 @@
 #define BLUE "\033[34m"
 #define CYAN "\033[36m"
 #define MAGENTA "\033[35m"
+#define WHITE "\033[37m"
 
 #define COST_UNDEF 65535
 /**
