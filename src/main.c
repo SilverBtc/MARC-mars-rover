@@ -91,10 +91,8 @@ t_tree createEmptyTree(){
 // Map created with dimensions 7 x 6
 int calculate_node(char* t_path, t_map map) {
     t_orientation ori = NORTH;
-    t_localisation phantomloc = loc_init(3, 3, ori);
-    int nodevalue = 9;
+    t_localisation phantomloc = loc_init(4, 6, ori);
     int size = strlen(t_path);
-    int totalCost = 0;
 
     for (int i = 0; i < size; i++) {
         switch(t_path[i]) {
@@ -107,12 +105,12 @@ int calculate_node(char* t_path, t_map map) {
             case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
             default: break;
         }
-        if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
-            printf("Erreur : Rover out of range\n");
-            return 999999;  // Imposible Path
-        }
-        totalCost = totalCost + map.costs[phantomloc.pos.y][phantomloc.pos.x];
     }
+    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
+        printf("Erreur : Rover out of range\n");
+        return 999999;  // Imposible Path
+    }
+    int totalCost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
 
     printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
     return totalCost;
@@ -171,8 +169,8 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
 void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
     if (node == NULL) return;
 
-    printf("%d", strlen(node->path));
-    if (node->val < *minCost, strlen(node->path) != 0) {
+    if (node->val < *minCost && strlen(node->path) != 0) {
+        printf("%d\n", node->val);
         *minCost = node->val;
         *optimalNode = node;
         *optimalPath = node->path;
