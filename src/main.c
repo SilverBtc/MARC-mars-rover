@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <string.h>
+#include <time.h>
 #include "map.h"
 #include "loc.h"
 #include "moves.h"
 
+#define MAX_CHILDREN 9
+#define MAX_PATH_LENGTH 6
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
@@ -17,7 +19,7 @@ void printPath(const char *prefix, const char *string) {
 }
 
 char* arrayrandomproba() {
-    char *arrayrandomproba = (char*)malloc(6 * sizeof(char));
+    char *arrayrandomproba = (char*)malloc((MAX_CHILDREN + 1) * sizeof(char));
     if (arrayrandomproba == NULL) {
         return NULL;
     }
@@ -39,7 +41,7 @@ char* arrayrandomproba() {
     for (int i = 0; i < TL; i++) arrayloop[index++] = 'L';
     for (int i = 0; i < TB; i++) arrayloop[index++] = 'J';
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 9; i++) {
         int randomnumber = rand() % SIZE;
         arrayrandomproba[i] = arrayloop[randomnumber];
 
@@ -59,16 +61,19 @@ char* arrayrandomproba() {
         SIZE--;
     }
 
+    arrayrandomproba[MAX_CHILDREN] = '\0';
     return arrayrandomproba;
 }
 
-typedef struct s_node
-{
-    struct s_node *children[9];
-    char* path[5];
+// Struct of tree
+typedef struct t_node {
+    char path[MAX_PATH_LENGTH];
     int val;
+    struct t_node *children[MAX_CHILDREN];
 } t_node;
 
+
+// Struct of tree root
 typedef struct s_tree
 {
     t_node *root;
@@ -80,8 +85,13 @@ t_tree createEmptyTree(){
     return temp;
 }
 
-int calculate_node(char* t_path, t_localisation localisation, t_map map) {
-    t_localisation phantomloc = localisation;
+
+
+
+// Map created with dimensions 7 x 6
+int calculate_node(char* t_path, t_map map) {
+    t_orientation ori = NORTH;
+    t_localisation phantomloc = loc_init(3, 3, ori);
     int nodevalue = 9;
     int size = strlen(t_path);
     
@@ -97,7 +107,7 @@ int calculate_node(char* t_path, t_localisation localisation, t_map map) {
             default: break;
         }
     }
-    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 10 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 10) {
+    if (phantomloc.pos.x < 0 || phantomloc.pos.x > 7 || phantomloc.pos.y < 0 || phantomloc.pos.y > 6) {
         printf("Erreur : Rover out of range\n");
         return 999999;  // Imposible Path
     }
@@ -108,100 +118,106 @@ int calculate_node(char* t_path, t_localisation localisation, t_map map) {
 }
 
 
-t_node *createNode(char* t_path, t_localisation localisation, t_map map){
-    t_node *node = malloc(sizeof(t_node));
-    if (node == NULL) {
-        fprintf(stderr, "Erreur: allocation de mémoire\n");
-        exit(1);
+t_node *createNode(const char *t_path, t_map map) {
+    t_node *node = (t_node *)malloc(sizeof(t_node));
+
+    strncpy(node->path, t_path, MAX_PATH_LENGTH - 1);
+    node->path[MAX_PATH_LENGTH - 1] = '\0';
+
+
+
+    int cost = calculate_node(t_path, map);
+    node->val = cost; // Calculate cost
+
+
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        node->children[i] = NULL;
     }
 
-    int length = strlen(t_path);
-    printf("all Move: %d\n", length);
-    if (length > 6) {
-        fprintf(stderr, "Erreur: trop d'éléments dans t_path\n");
-        exit(1);
-    }
 
-    for(int i = 0; i < 5; i++){node->path[i] = t_path[i];}
-    node->val = calculate_node(t_path, localisation, map);
-    
-    for (int i = 0; i < 9; i++){node->children[i] = NULL;}
-
-    displayNode(node, 0);
+    printf("node info: path: %s, val: %d\n", node->path, node->val);
     return node;
 }
 
-void createBranch(t_node *parent_node, int nChild, int depth, char* move, t_localisation localisation, t_map map){
-    for(int i = 0; i<nChild; i++){
-        // t_node manager
-        int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-        char firstMove[6];
-        // strncpy(firstMove, move, i);
-        strncpy(firstMove, move, sizeof(firstMove) - 1);
-        firstMove[sizeof(firstMove) - 1] = '\0';
+void generateCombinations(t_node *node, const char *alphabet, int depth, int maxDepth, t_map map) {
+    if (depth == maxDepth) {
+        //printf("Chemin final : %s\n", node->path);
+        return;
+    }
 
-        printPath("\nMove:", move);
-        parent_node->children[i] = createNode(&move[i], localisation, map);
+    int len = strlen(alphabet);
+    for (int i = 0; i < len; i++) {
+        // Create new chain alphabet[i]
+        char reducedAlphabet[len];
+        strncpy(reducedAlphabet, alphabet, i); // Copy letters before i
+        strncpy(reducedAlphabet + i, alphabet + i + 1, len - i - 1); // Copy letters after i
+        reducedAlphabet[len - 1] = '\0';
 
-        for (int j = 0; j < 9; j++) {
-            if (firstMove[i] == "\0") break;
-            parent_node->children[i]->path[j] = malloc(2 * sizeof(char));
-            if (parent_node->children[i]->path[j] == NULL) {
-                fprintf(stderr, "Erreur allocation\n");
-                exit(1);
-            }
-            strcpy(parent_node->children[i]->path[j], &firstMove[j]);
-        }
-        // parent_node->children[i]->val = 777;
+        // Add to current path
+        char newPath[MAX_PATH_LENGTH];
+        snprintf(newPath, MAX_PATH_LENGTH, "%s%c", node->path, alphabet[i]);
 
+        t_node *child = createNode(newPath, map);
+        node->children[i] = child;
 
-        // depth manager
-        if(depth == 4)
-            return;
-        createBranch(parent_node->children[i], nChild - 1, depth + 1, move, localisation, map);
+        generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map);
     }
 }
 
-void createTree(char* move, t_localisation localisation, t_map map) {
-    
-    t_tree tree = createEmptyTree();
-    int costRover = map.costs[localisation.pos.x][localisation.pos.y];
-    t_node *root = createNode(move, localisation, map);
-    tree.root = root;
-    int nChild = 9;
-    int depth = 1;
-    createBranch(tree.root, nChild, depth, move, localisation, map);
-    
-    // Search Better path
-    t_node *optimalNode = NULL;
-    int minCost = 50;
-    char* optimalPath = NULL;
 
-    findOptimalPath(tree.root, &optimalNode, &minCost, &optimalPath);
 
-    printf("\n\n### Final Best Path Rover Find ###\n");
-    if (optimalPath != NULL) {
-        printf("Optimal path: %s\n", optimalPath);
-        printf("Cost: %d\n", minCost);
-        printf("( ˶ˆᗜˆ˵ )\n");
-    } else
-        printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
-}
 
-// Reste plus qu'a fix cette fonction car deja j'ai pas compris comment ca peut marcher et j'arrive pas a return tout le path dcp force a nous
-void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
+void printTree(t_node *node, int depth) {
     if (node == NULL) return;
 
-    if (node->val < *minCost) {
-        *minCost = node->val;
-        *optimalNode = node;
-        *optimalPath = node->path;
+    // Indentations
+    for (int i = 0; i < depth; i++) {
+        printf("  ");
     }
 
-    for (int i = 0; i < 9; i++) {
-        findOptimalPath(node->children[i], optimalNode, minCost, optimalPath);
+    // Node informations
+    printf("Node(Path: %s, Value: %d)\n", node->path, node->val);
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        if (node->children[i] != NULL) {
+            printTree(node->children[i], depth + 1);
+        }
     }
 }
+
+void freeTree(t_node *node) {
+    if (node == NULL) return;
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        freeTree(node->children[i]);
+    }
+    free(node);
+}
+
+int countNodes(t_node *node) {
+    if (node == NULL) {
+        return 0;
+    }
+
+    int count = 1;
+
+    for (int i = 0; i < MAX_CHILDREN; i++) {
+        if (node->children[i] != NULL) {
+            count += countNodes(node->children[i]);
+        }
+    }
+
+    return count;
+}
+
+
+
+
+
+
+
+
 
 
 void displayNode(t_node *node, int depth) {
@@ -226,61 +242,6 @@ void displayTree(t_tree *tree) {
     displayNode(tree->root, 0);
 }
 
-struct s_localisation calculate_new_location(struct s_localisation loc, t_node* node, char order, t_map map) {
-    int distance = 0;
-    int cost;
-
-    switch (order) {
-        case 'A':
-            distance = 1;
-            break;
-        case 'B':
-            distance = 2;
-            break;
-        case 'C':
-            distance = 3;
-            break;
-        case 'R':
-            distance = -1;
-            break;
-        case 'T':
-            loc.ori = (loc.ori + 1) % 4;
-            break;
-        case 'L':
-            loc.ori = (loc.ori - 1 + 4) % 4;
-            break;
-        case 'J':
-            loc.ori = (loc.ori + 2) % 4;
-            break;
-        default:
-            break;
-    }
-
-    switch (loc.ori) {
-        case NORTH:
-            loc.pos.y += distance;
-            break;
-        case SOUTH:
-            loc.pos.y -= distance;
-            break;
-        case EAST:
-            loc.pos.x += distance;
-            break;
-        case WEST:
-            loc.pos.x -= distance;
-            break;
-        default:
-            break;
-    }
-
-    cost = map.costs[loc.pos.x][loc.pos.y];
-    node->val = cost;
-    return loc;
-
-/*
- * Faut regarder que l'on sorte pas du jeu et qu'on traverse pas de crevasse :)
- */
-}
 
 
 
@@ -319,32 +280,61 @@ int main() {
     printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
 
 
-    // t_tree tree = createEmptyTree();
-    // t_node *root = createNode(5);
-    // tree.root = root;
-
-    // root->children[0] = createNode(10);
-    // root->children[1] = createNode(15);
-    // root->children[0]->children[0] = createNode(20);
-    // root->children[0]->children[1] = createNode(25);
-
-    // displayTree(&tree);
-
-    //char *result = (char*)malloc(9 * sizeof(char));
-    char* result = arrayrandomproba();
+    char* alphabet = arrayrandomproba();
     
-    // if (result != NULL) {
+    // if (alphabet != NULL) {
     //     printf("Generated array: ");
-    //     for (int i = 0; i < 5; i++) {
-    //         printf("%c", result[i]);
+    //     for (int i = 0; i < 9; i++) {
+    //         printf("%c", alphabet[i]);
     //     }
     //     printf("\n");
     //     //free(result);
     // }
-    printPath("Generated array: ", result);
+    printPath("Generated array: ", alphabet);
 
-    createTree(result, loc, map);
+    // createTree(result, loc, map);
 
-    free(result);
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+    
+
+    
+    
+    // const char *alphabet = "ABCDEFGHI"; // Alphabet de base
+    int maxDepth = 5; // Profondeur maximale pour les combinaisons
+
+    t_tree tree = createEmptyTree();
+    t_node *root = createNode("", map);
+    tree.root = root;
+
+
+
+    generateCombinations(root, alphabet, 0, maxDepth, map);
+    
+    //printTree(root, 0);
+    
+    printf("Nb node: %d\n", countNodes(root));
+
+
+
+
+    // Libération mémoire (à implémenter si nécessaire)
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Time taken : %f\n", cpu_time_used);
+
+
+    // printPath("Generated array: ", alphabet);
+    // printf("Map created with dimensions %d x %d (current cost: %d)\n", map.y_max, map.x_max, map.costs[3][4]);
+    // for (int i = 0; i < map.y_max; i++)
+    // {
+    //     for (int j = 0; j < map.x_max; j++)
+    //     {
+    //         printf("%-5d ", map.costs[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    free(alphabet);
     return 0;
 }
