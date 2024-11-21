@@ -56,7 +56,7 @@ t_map createMapFromFile(char *);
  * @brief display the map with characters
  * @param map : the map to display
  */
-void displayMap(t_map);
+void displayMap(t_map, t_localisation);
 
 /**
  * @brief :  function to get the position of the base station

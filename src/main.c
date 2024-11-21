@@ -89,9 +89,9 @@ t_tree createEmptyTree(){
 
 
 // Map created with dimensions 7 x 6
-int calculate_node(char* t_path, t_map map) {
+int calculate_node(char* t_path, t_map map, t_localisation loc) {
     t_orientation ori = NORTH;
-    t_localisation phantomloc = loc_init(4, 6, ori);
+    t_localisation phantomloc = loc;
     int size = strlen(t_path);
 
     for (int i = 0; i < size; i++) {
@@ -117,7 +117,7 @@ int calculate_node(char* t_path, t_map map) {
 }
 
 
-t_node *createNode(const char *t_path, t_map map) {
+t_node *createNode(const char *t_path, t_map map, t_localisation loc) {
     t_node *node = (t_node *)malloc(sizeof(t_node));
 
     strncpy(node->path, t_path, MAX_PATH_LENGTH - 1);
@@ -125,7 +125,7 @@ t_node *createNode(const char *t_path, t_map map) {
 
 
 
-    int cost = calculate_node(t_path, map);
+    int cost = calculate_node(t_path, map, loc);
     node->val = cost; // Calculate cost
 
 
@@ -139,7 +139,7 @@ t_node *createNode(const char *t_path, t_map map) {
     return node;
 }
 
-void generateCombinations(t_node *node, const char *alphabet, int depth, int maxDepth, t_map map) {
+void generateCombinations(t_node *node, const char *alphabet, int depth, int maxDepth, t_map map, t_localisation loc) {
     if (depth == maxDepth) {
         //printf("Chemin final : %s\n", node->path);
         return;
@@ -157,10 +157,10 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
         char newPath[MAX_PATH_LENGTH];
         snprintf(newPath, MAX_PATH_LENGTH, "%s%c", node->path, alphabet[i]);
 
-        t_node *child = createNode(newPath, map);
+        t_node *child = createNode(newPath, map, loc);
         node->children[i] = child;
 
-        generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map);
+        generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map, loc);
     }
 }
 
@@ -169,7 +169,7 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
 void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
     if (node == NULL) return;
 
-    if (node->val < *minCost && strlen(node->path) != 0) {
+    if (node->val < *minCost && (strlen(node->path) == 5 || node->val == 0)) {
         *minCost = node->val;
         *optimalNode = node;
         *optimalPath = node->path;
@@ -267,12 +267,13 @@ void displayTree(t_tree *tree) {
 
 int main() {
     t_map map = createMapFromFile("./maps/example1.map");
-    printf("Map created with dimensions %d x %d\n", map.y_max, map.x_max);
+
+    //printf("Map created with dimensions %d x %d\n", map.y_max, map.x_max);
     for (int i = 0; i < map.y_max; i++)
     {
         for (int j = 0; j < map.x_max; j++)
         {
-            printf("%d ", map.soils[i][j]);
+            //printf("%d ", map.soils[i][j]);
         }
         printf("\n");
     }
@@ -281,53 +282,36 @@ int main() {
     {
         for (int j = 0; j < map.x_max; j++)
         {
-            printf("%-5d ", map.costs[i][j]);
+            //printf("%-5d ", map.costs[i][j]);
         }
         printf("\n");
     }
-    displayMap(map);
 
-    int Xdep = 3;
-    int Ydep = 3;
+
+
+    int Xdep = 4;
+    int Ydep = 6;
     t_orientation ori = NORTH;
 
     t_localisation loc = loc_init(Xdep, Ydep, ori);
 
+    displayMap(map, loc);
     printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
-
 
     clock_t start, end;
     double cpu_time_used;
     start = clock();
     
     char* alphabet = arrayrandomproba();
-    
-    // if (alphabet != NULL) {
-    //     printf("Generated array: ");
-    //     for (int i = 0; i < 9; i++) {
-    //         printf("%c", alphabet[i]);
-    //     }
-    //     printf("\n");
-    //     //free(result);
-    // }
-    // printPath("Generated array: ", alphabet);
-
-    // createTree(result, loc, map);
-
-    
-
-    
-    
-    // const char *alphabet = "ABCDEFGHI"; // Alphabet de base
     int maxDepth = 5; // Profondeur maximale pour les combinaisons
 
     t_tree tree = createEmptyTree();
-    t_node *root = createNode("", map);
+    t_node *root = createNode("", map, loc);
     tree.root = root;
 
 
 
-    generateCombinations(root, alphabet, 0, maxDepth, map);
+    generateCombinations(root, alphabet, 0, maxDepth, map, loc);
     
     //printTree(root, 0);
     
@@ -352,23 +336,13 @@ int main() {
         printf("Optimal path: %s\n", optimalPath);
         printf("Cost: %d\n", minCost);
         printf("( ˶ˆᗜˆ˵ )\n");
-        calculate_node(optimalPath, map);
+        calculate_node(optimalPath, map, loc);
     } else
         printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
 
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Time taken : %f\n", cpu_time_used);
-
-    printf("Map created with dimensions %d x %d (current cost: %d)\n", map.y_max, map.x_max, map.costs[3][4]);
-    for (int i = 0; i < map.y_max; i++)
-    {
-        for (int j = 0; j < map.x_max; j++)
-        {
-            printf("%-5d ", map.costs[i][j]);
-        }
-        printf("\n");
-    }
     free(alphabet);
     return 0;
 }

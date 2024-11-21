@@ -252,7 +252,7 @@ t_map createTrainingMap()
     return createMapFromFile("..\\maps\\training.map");
 }
 
-void displayMap(t_map map)
+void displayMap(t_map map, t_localisation local)
 {
     /** the rules for display are :
      * display all soils with 3x3 characters
@@ -264,6 +264,7 @@ void displayMap(t_map map)
         {
             for (int j = 0; j < map.x_max; j++)
             {
+                //printf(" %d %d %d \n", i,j,rep);
                 char c[4];
                 switch (map.soils[i][j])
                 {
@@ -278,13 +279,31 @@ void displayMap(t_map map)
                         }
                         break;
                     case PLAIN:
-                        strcpy(c, "---");
+                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                            strcpy(c, "-#-");
+                        }
+                        else
+                        {
+                            strcpy(c, "---");
+                        }
                         break;
                     case ERG:
-                        strcpy(c, "~~~");
+                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                            strcpy(c, "~#~");
+                        }
+                        else
+                        {
+                            strcpy(c, "~~~");
+                        }
                         break;
                     case REG:
-                        strcpy(c, "^^^");
+                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                            strcpy(c, "^#^");
+                        }
+                        else
+                        {
+                            strcpy(c, "^^^");
+                        }
                         break;
                     case CREVASSE:
                         sprintf(c, "%c%c%c",219,219,219);
