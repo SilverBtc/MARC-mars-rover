@@ -94,7 +94,8 @@ int calculate_node(char* t_path, t_map map) {
     t_localisation phantomloc = loc_init(3, 3, ori);
     int nodevalue = 9;
     int size = strlen(t_path);
-    
+    int totalCost = 0;
+
     for (int i = 0; i < size; i++) {
         switch(t_path[i]) {
             case 'A': phantomloc = translate(phantomloc, F_10); break;
@@ -106,15 +107,15 @@ int calculate_node(char* t_path, t_map map) {
             case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
             default: break;
         }
-    }
-    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
-        printf("Erreur : Rover out of range\n");
-        return 999999;  // Imposible Path
+        if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
+            printf("Erreur : Rover out of range\n");
+            return 999999;  // Imposible Path
+        }
+        totalCost = totalCost + map.costs[phantomloc.pos.y][phantomloc.pos.x];
     }
 
-    int cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
-    printf("Position: (%d, %d), Orientation %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori);
-    return cost;
+    printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
+    return totalCost;
 }
 
 
@@ -170,7 +171,8 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
 void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) {
     if (node == NULL) return;
 
-    if (node->val < *minCost) {
+    printf("%d", strlen(node->path));
+    if (node->val < *minCost, strlen(node->path) != 0) {
         *minCost = node->val;
         *optimalNode = node;
         *optimalPath = node->path;
@@ -344,10 +346,10 @@ int main() {
 
     // Search Better path
     t_node *optimalNode = NULL;
-    int minCost = 50;
+    int minCost = 9000;
     char* optimalPath = NULL;
 
-    findOptimalPath(tree.root, &optimalNode, &minCost, &optimalPath);
+    findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
 
     printPath("Generated array: ", alphabet);
     printf("\n\n### Final Best Path Rover Find ###\n");
