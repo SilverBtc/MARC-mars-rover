@@ -274,13 +274,10 @@ void clear_screen() {
     #endif
 }
 
-// show the map in real time
 void live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost) {
-    t_orientation ori = NORTH; // Orientation initiale
     t_localisation phantomloc = loc; // Position initiale
     int size = strlen(t_path);
 
-    // Afficher un aperçu de la carte avant la boucle
     printf(GREEN "\n=== Initial Map Preview ===\n" RESET);
     displayMap(map, loc);
     printf("\nRover starting at position: (%d, %d), facing: %d\n", loc.pos.x, loc.pos.y, loc.ori);
@@ -288,33 +285,71 @@ void live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost) 
     printf(RED "Estimated Minimum Cost: %d\n" RESET, minCost);
     printf("\n");
 
-    // Boucle pour afficher les étapes
     for (int i = 0; i < size; i++) {
+        int steps = 1;
+
         switch(t_path[i]) {
-            case 'A': phantomloc = translate(phantomloc, F_10); break;
-            case 'B':
-                for(int wrizz=0;wrizz<2;wrizz++)
-                    phantomloc = translate(phantomloc, F_10);
+            case 'A': // Avancer de 10 unités
+                steps = 1;
                 break;
-            case 'C':
-                for(int wrizz=0;wrizz<3;wrizz++)
-                    phantomloc = translate(phantomloc, F_10);
+            case 'B': // Avancer de 20 unités (en 2 étapes)
+                steps = 2;
                 break;
-            case 'R': phantomloc = translate(phantomloc, B_10); break;
-            case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
-            case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
-            case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
-            default: break;
+            case 'C': // Avancer de 30 unités (en 3 étapes)
+                steps = 3;
+                break;
+            case 'R': // Reculer de 10 unités
+                phantomloc = translate(phantomloc, B_10);
+                clear_screen();
+                displayMap(map, phantomloc);
+                printf(YELLOW "\nRover moved backward.\n" RESET);
+                usleep(1000000);
+                continue;
+
+            case 'T': // Rotation à droite
+                phantomloc.ori = rotate(phantomloc.ori, T_RIGHT);
+                clear_screen();
+                displayMap(map, phantomloc);
+                printf(CYAN "\nRover turned right.\n" RESET);
+                usleep(1000000);
+                continue;
+
+            case 'L': // Rotation à gauche
+                phantomloc.ori = rotate(phantomloc.ori, T_LEFT);
+                clear_screen();
+                displayMap(map, phantomloc);
+                printf(CYAN "\nRover turned left.\n" RESET);
+                usleep(1000000);
+                continue;
+
+            case 'J': // Demi-tour
+                phantomloc.ori = rotate(phantomloc.ori, U_TURN);
+                clear_screen();
+                displayMap(map, phantomloc);
+                printf(CYAN "\nRover made a U-turn.\n" RESET);
+                usleep(1000000);
+                continue;
+
+            default:
+                continue;
         }
-        usleep(1000000); // Pause d'une seconde entre chaque étape
-        clear_screen(); // Nettoyer l'écran
-        printf(BLUE "\n=== Step %d ===\n" RESET, i + 1);
-        displayMap(map, phantomloc);
-        printf("\n### Final Best Path Rover Find ###\n");
-        printf("Optimal path: " MAGENTA "%s\n" RESET, t_path);
-        printf("Cost: " CYAN "%d\n" RESET, minCost);
-        printf("( ˶ˆᗜˆ˵ )\n");
+
+        for (int step = 0; step < steps; step++) {
+            phantomloc = translate(phantomloc, F_10);
+            clear_screen();
+            displayMap(map, phantomloc);
+            printf(YELLOW "\nRover moved forward (%d/%d steps).\n" RESET, step + 1, steps);
+            usleep(1000000);
+        }
     }
+
+    // final result
+    clear_screen();
+    displayMap(map, phantomloc);
+    printf(GREEN "\n=== Final State ===\n" RESET);
+    printf("Optimal path: " MAGENTA "%s\n" RESET, t_path);
+    printf("Cost: " CYAN "%d\n" RESET, minCost);
+    printf("( ˶ˆᗜˆ˵ )\n");
 }
 
 
