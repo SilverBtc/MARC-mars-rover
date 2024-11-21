@@ -2,12 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+
 #include "map.h"
 #include "loc.h"
 #include "moves.h"
 
 #define MAX_CHILDREN 9
 #define MAX_PATH_LENGTH 6
+
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define CYAN "\033[36m"
+#define MAGENTA "\033[35m"
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
@@ -260,6 +270,52 @@ void displayTree(t_tree *tree) {
 
 
 
+void clear_screen() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+// show the map in real time
+void live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost) {
+    t_orientation ori = NORTH; // Orientation initiale
+    t_localisation phantomloc = loc; // Position initiale
+    int size = strlen(t_path);
+
+    // Afficher un aperçu de la carte avant la boucle
+    printf(GREEN "\n=== Initial Map Preview ===\n" RESET);
+    displayMap(map, loc);
+    printf("\nRover starting at position: (%d, %d), facing: %d\n", loc.pos.x, loc.pos.y, loc.ori);
+    printf(YELLOW "Optimal Path to Follow: %s\n" RESET, t_path);
+    printf(RED "Estimated Minimum Cost: %d\n" RESET, minCost);
+    printf("\n");
+
+    // Boucle pour afficher les étapes
+    for (int i = 0; i < size; i++) {
+        switch(t_path[i]) {
+            case 'A': phantomloc = translate(phantomloc, F_10); break;
+            case 'B': phantomloc = translate(phantomloc, F_20); break;
+            case 'C': phantomloc = translate(phantomloc, F_30); break;
+            case 'R': phantomloc = translate(phantomloc, B_10); break;
+            case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
+            case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
+            case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
+            default: break;
+        }
+
+        usleep(1000000); // Pause d'une seconde entre chaque étape
+        clear_screen(); // Nettoyer l'écran
+        printf(BLUE "\n=== Step %d ===\n" RESET, i + 1);
+        displayMap(map, phantomloc);
+        printf("\n### Final Best Path Rover Find ###\n");
+        printf("Optimal path: " MAGENTA "%s\n" RESET, t_path);
+        printf("Cost: " CYAN "%d\n" RESET, minCost);
+        printf("( ˶ˆᗜˆ˵ )\n");
+    }
+}
+
 
 
 
@@ -343,6 +399,10 @@ int main() {
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Time taken : %f\n", cpu_time_used);
+
+
+    live_map_preview(optimalPath, map, loc, minCost);
+
     free(alphabet);
     return 0;
 }

@@ -306,7 +306,7 @@ void displayMap(t_map map, t_localisation local)
                         }
                         break;
                     case CREVASSE:
-                        sprintf(c, "%c%c%c",219,219,219);
+                        sprintf(c, "@@@");
                         break;
                     default:
                         strcpy(c, "???");
