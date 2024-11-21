@@ -107,12 +107,12 @@ int calculate_node(char* t_path, t_map map) {
         }
     }
     if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
-        printf("Erreur : Rover out of range\n");
+        // printf("Erreur : Rover out of range\n");
         return 999999;  // Imposible Path
     }
     int totalCost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
 
-    printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
+    // printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
     return totalCost;
 }
 
@@ -135,7 +135,7 @@ t_node *createNode(const char *t_path, t_map map) {
     }
 
 
-    printf("node info: path: %s, val: %d\n", node->path, node->val);
+    // printf("node info: path: %s, val: %d\n", node->path, node->val);
     return node;
 }
 
@@ -170,7 +170,6 @@ void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** op
     if (node == NULL) return;
 
     if (node->val < *minCost && strlen(node->path) != 0) {
-        printf("%d\n", node->val);
         *minCost = node->val;
         *optimalNode = node;
         *optimalPath = node->path;
@@ -297,6 +296,10 @@ int main() {
     printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
 
 
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+    
     char* alphabet = arrayrandomproba();
     
     // if (alphabet != NULL) {
@@ -307,13 +310,10 @@ int main() {
     //     printf("\n");
     //     //free(result);
     // }
-    printPath("Generated array: ", alphabet);
+    // printPath("Generated array: ", alphabet);
 
     // createTree(result, loc, map);
 
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
     
 
     
@@ -331,15 +331,12 @@ int main() {
     
     //printTree(root, 0);
     
-    printf("Nb node: %d\n", countNodes(root));
+    // printf("Nb node: %d\n", countNodes(root));
 
 
 
 
     // Libération mémoire (à implémenter si nécessaire)
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    printf("Time taken : %f\n", cpu_time_used);
 
 
     // Search Better path
@@ -359,6 +356,9 @@ int main() {
     } else
         printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
 
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    printf("Time taken : %f\n", cpu_time_used);
 
     printf("Map created with dimensions %d x %d (current cost: %d)\n", map.y_max, map.x_max, map.costs[3][4]);
     for (int i = 0; i < map.y_max; i++)
