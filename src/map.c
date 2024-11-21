@@ -252,71 +252,73 @@ t_map createTrainingMap()
     return createMapFromFile("..\\maps\\training.map");
 }
 
-void displayMap(t_map map, t_localisation local)
-{
-    /** the rules for display are :
-     * display all soils with 3x3 characters
-     * characters are : B for base station, '-' for plain, '~' for erg, '^' for reg, ' ' for crevasse
+void displayMap(t_map map, t_localisation local) {
+    /** The rules for display are:
+     * Display all soils with 3x3 characters
+     * Characters are: B for base station, '-' for plain, '~' for erg, '^' for reg, ' ' for crevasse
      */
-    for (int i = 0; i < map.y_max; i++)
-    {
-        for (int rep = 0; rep < 3; rep++)
-        {
-            for (int j = 0; j < map.x_max; j++)
-            {
-                //printf(" %d %d %d \n", i,j,rep);
+    for (int i = 0; i < map.y_max; i++) {
+        for (int rep = 0; rep < 3; rep++) {
+            for (int j = 0; j < map.x_max; j++) {
                 char c[4];
-                switch (map.soils[i][j])
-                {
+                const char* color = RESET;
+
+                // Identifier le type de sol
+                switch (map.soils[i][j]) {
                     case BASE_STATION:
-                        if (rep==1)
-                        {
+                        color = WHITE;
+                        if (rep == 1) {
                             strcpy(c, " B ");
-                        }
-                        else
-                        {
+                        } else {
                             strcpy(c, "   ");
                         }
                         break;
+
                     case PLAIN:
-                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                        color = GREEN;
+                        if (local.pos.y == i && local.pos.x == j && rep == 1) {
+                            color = MAGENTA; // Rover sur la plaine
                             strcpy(c, "-#-");
-                        }
-                        else
-                        {
+                        } else {
                             strcpy(c, "---");
                         }
                         break;
+
                     case ERG:
-                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                        color = BLUE;
+                        if (local.pos.y == i && local.pos.x == j && rep == 1) {
+                            color = MAGENTA; // Rover sur l'erg
                             strcpy(c, "~#~");
-                        }
-                        else
-                        {
+                        } else {
                             strcpy(c, "~~~");
                         }
                         break;
+
                     case REG:
-                        if(local.pos.y == i && local.pos.x == j && rep==1){
+                        color = YELLOW;
+                        if (local.pos.y == i && local.pos.x == j && rep == 1) {
+                            color = MAGENTA; // Rover sur le reg
                             strcpy(c, "^#^");
-                        }
-                        else
-                        {
+                        } else {
                             strcpy(c, "^^^");
                         }
                         break;
+
                     case CREVASSE:
-                        sprintf(c, "@@@");
+                        color = RED;
+                        strcpy(c, "@@@");
                         break;
+
                     default:
+                        color = RESET;
                         strcpy(c, "???");
                         break;
                 }
-                printf("%s", c);
-            }
-            printf("\n");
-        }
 
+                // Afficher avec la couleur appropriée
+                printf("%s%s", color, c);
+            }
+            printf(RESET "\n"); // Réinitialiser la couleur à la fin de chaque ligne
+        }
     }
-    return;
 }
