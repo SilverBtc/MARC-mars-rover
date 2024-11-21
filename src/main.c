@@ -100,8 +100,14 @@ int calculate_node(char* t_path, t_map map, t_localisation loc) {
     for (int i = 0; i < size; i++) {
         switch(t_path[i]) {
             case 'A': phantomloc = translate(phantomloc, F_10); break;
-            case 'B': phantomloc = translate(phantomloc, F_20); break;
-            case 'C': phantomloc = translate(phantomloc, F_30); break;
+            case 'B':
+                for(int wrizz=0;wrizz<2;wrizz++)
+                    phantomloc = translate(phantomloc, F_10);
+                break;
+            case 'C':
+                for(int wrizz=0;wrizz<3;wrizz++)
+                    phantomloc = translate(phantomloc, F_10);
+                break;
             case 'R': phantomloc = translate(phantomloc, B_10); break;
             case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
             case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
@@ -113,10 +119,10 @@ int calculate_node(char* t_path, t_map map, t_localisation loc) {
         // printf("Erreur : Rover out of range\n");
         return 999999;  // Imposible Path
     }
-    int totalCost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+    int Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
 
     // printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
-    return totalCost;
+    return Cost;
 }
 
 
@@ -126,10 +132,7 @@ t_node *createNode(const char *t_path, t_map map, t_localisation loc) {
     strncpy(node->path, t_path, MAX_PATH_LENGTH - 1);
     node->path[MAX_PATH_LENGTH - 1] = '\0';
 
-
-
-    int cost = calculate_node(t_path, map, loc);
-    node->val = cost; // Calculate cost
+    node->val = calculate_node(t_path, map, loc);
 
 
 
@@ -289,15 +292,20 @@ void live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost) 
     for (int i = 0; i < size; i++) {
         switch(t_path[i]) {
             case 'A': phantomloc = translate(phantomloc, F_10); break;
-            case 'B': phantomloc = translate(phantomloc, F_20); break;
-            case 'C': phantomloc = translate(phantomloc, F_30); break;
+            case 'B':
+                for(int wrizz=0;wrizz<2;wrizz++)
+                    phantomloc = translate(phantomloc, F_10);
+                break;
+            case 'C':
+                for(int wrizz=0;wrizz<3;wrizz++)
+                    phantomloc = translate(phantomloc, F_10);
+                break;
             case 'R': phantomloc = translate(phantomloc, B_10); break;
             case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
             case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
             case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
             default: break;
         }
-
         usleep(1000000); // Pause d'une seconde entre chaque étape
         clear_screen(); // Nettoyer l'écran
         printf(BLUE "\n=== Step %d ===\n" RESET, i + 1);

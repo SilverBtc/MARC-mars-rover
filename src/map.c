@@ -277,7 +277,7 @@ void displayMap(t_map map, t_localisation local) {
                     case PLAIN:
                         color = GREEN;
                         if (local.pos.y == i && local.pos.x == j && rep == 1) {
-                            color = MAGENTA; // Rover sur la plaine
+                            color = BLUE; // Rover sur la plaine
                             strcpy(c, "-#-");
                         } else {
                             strcpy(c, "---");
@@ -285,9 +285,9 @@ void displayMap(t_map map, t_localisation local) {
                         break;
 
                     case ERG:
-                        color = BLUE;
+                        color = MAGENTA;
                         if (local.pos.y == i && local.pos.x == j && rep == 1) {
-                            color = MAGENTA; // Rover sur l'erg
+                            color = BLUE; // Rover sur l'erg
                             strcpy(c, "~#~");
                         } else {
                             strcpy(c, "~~~");
@@ -297,7 +297,7 @@ void displayMap(t_map map, t_localisation local) {
                     case REG:
                         color = YELLOW;
                         if (local.pos.y == i && local.pos.x == j && rep == 1) {
-                            color = MAGENTA; // Rover sur le reg
+                            color = BLUE; // Rover sur le reg
                             strcpy(c, "^#^");
                         } else {
                             strcpy(c, "^^^");
