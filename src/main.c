@@ -11,13 +11,6 @@
 #define MAX_CHILDREN 9
 #define MAX_PATH_LENGTH 6
 
-#define RESET "\033[0m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define BLUE "\033[34m"
-#define CYAN "\033[36m"
-#define MAGENTA "\033[35m"
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
