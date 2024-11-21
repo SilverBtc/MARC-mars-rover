@@ -95,33 +95,64 @@ t_tree createEmptyTree(){
 int calculate_node(char* t_path, t_map map, t_localisation loc) {
     t_orientation ori = NORTH;
     t_localisation phantomloc = loc;
-    int size = strlen(t_path);
+    int size = strlen(t_path), crevasse = 0;
+    int Cost;
 
     for (int i = 0; i < size; i++) {
         switch(t_path[i]) {
-            case 'A': phantomloc = translate(phantomloc, F_10); break;
+            case 'A': phantomloc = translate(phantomloc, F_10);
+                if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 6 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 7) {
+                    // printf("Erreur : Rover out of range\n");
+                    return 999999;  // Imposible Path
+                }
+                Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+                if (Cost >= 10000)crevasse = 1;
+            break;
             case 'B':
-                for(int wrizz=0;wrizz<2;wrizz++)
+                for(int wrizz=0;wrizz<2;wrizz++) {
                     phantomloc = translate(phantomloc, F_10);
+                    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 6 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 7) {
+                        // printf("Erreur : Rover out of range\n");
+                        return 999999;  // Imposible Path
+                    }
+                    Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+                    if (Cost >= 10000)crevasse = 1;
+                }
                 break;
             case 'C':
-                for(int wrizz=0;wrizz<3;wrizz++)
+                for(int wrizz=0;wrizz<3;wrizz++) {
                     phantomloc = translate(phantomloc, F_10);
+                    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 6 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 7) {
+                        // printf("Erreur : Rover out of range\n");
+                        return 999999;  // Imposible Path
+                    }
+                    Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+                    if (Cost >= 10000)crevasse = 1;
+                }
                 break;
-            case 'R': phantomloc = translate(phantomloc, B_10); break;
+            case 'R': phantomloc = translate(phantomloc, B_10);
+                if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 6 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 7) {
+                    // printf("Erreur : Rover out of range\n");
+                    return 999999;  // Imposible Path
+                }
+                Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+                if (Cost >= 10000)crevasse = 1;
+            break;
             case 'T': phantomloc.ori = rotate(phantomloc.ori, T_RIGHT); break;
             case 'L': phantomloc.ori = rotate(phantomloc.ori, T_LEFT); break;
             case 'J': phantomloc.ori = rotate(phantomloc.ori, U_TURN); break;
             default: break;
         }
     }
-    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 7 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 6) {
+    if (phantomloc.pos.x < 0 || phantomloc.pos.x >= 6 || phantomloc.pos.y < 0 || phantomloc.pos.y >= 7) {
         // printf("Erreur : Rover out of range\n");
         return 999999;  // Imposible Path
     }
-    int Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+    if(crevasse)return 10000; //found crevasse during forward == impossible
 
-    // printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, totalCost);
+        Cost = map.costs[phantomloc.pos.y][phantomloc.pos.x];
+    //printf("Position: (%d, %d), Orientation %d cost: %d\n", phantomloc.pos.x, phantomloc.pos.y, phantomloc.ori, Cost);
+
     return Cost;
 }
 
@@ -389,7 +420,6 @@ int main() {
 
     displayMap(map, loc);
     printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
-
     clock_t start, end;
     double cpu_time_used;
     start = clock();
@@ -402,18 +432,11 @@ int main() {
     tree.root = root;
 
 
-
     generateCombinations(root, alphabet, 0, maxDepth, map, loc);
     
     //printTree(root, 0);
     
     // printf("Nb node: %d\n", countNodes(root));
-
-
-
-
-    // Libération mémoire (à implémenter si nécessaire)
-
 
     // Search Better path
     t_node *optimalNode = NULL;
@@ -435,7 +458,6 @@ int main() {
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
     printf("Time taken : %f\n", cpu_time_used);
-
 
     live_map_preview(optimalPath, map, loc, minCost);
 

@@ -230,7 +230,7 @@ t_map createMapFromFile(char *filename)
     {
 
         // parse the line to get the values : 0 = BASE_STATION, 1 = PLAIN, 2 = ERG, 3 = REG, 4 = CREVASSE
-        // values are separated by spaces, so we use sscanf with %d to get the values
+        // values are separated by spaces, so we use fscanf with %d to get the values
         for (int j = 0; j < xdim; j++)
         {
             int value;
@@ -238,6 +238,7 @@ t_map createMapFromFile(char *filename)
             map.soils[i][j] = value;
             // cost is 0 for BASE_STATION, 65535 for other soils
             map.costs[i][j] = (value == BASE_STATION) ? 0 : COST_UNDEF;
+
         }
 
     }
