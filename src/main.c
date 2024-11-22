@@ -14,6 +14,10 @@
 #define MAX_CHILDREN 9
 #define MAX_PATH_LENGTH 6
 
+// define x and y axis
+#define X 4
+#define Y 5
+
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
@@ -368,11 +372,197 @@ t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int
 }
 
 
+void needinfo() {
+    t_map map = createMapFromFile("./maps/example1.map");
+
+    int Xdep = 4;
+    int Ydep = 6;
+    t_orientation ori = NORTH;
+
+    t_localisation loc = loc_init(Xdep, Ydep, ori);
+
+    clock_t start, end;
+    clock_t start1,start2,end1,end2;
+    double cpu_time_used1, cpu_time_used2,cpu_time_used3;
+    start = clock();
+
+    char* alphabet = arrayrandomproba();
+    int maxDepth = 5;
+
+    t_tree tree = createEmptyTree();
+    t_node *root = createNode("", map, loc);
+    tree.root = root;
+
+    start1 = clock();
+    generateCombinations(root, alphabet, 0, maxDepth, map, loc);
+    end1 = clock();
+
+    t_node *optimalNode = NULL;
+    int minCost = 9000;
+    char* optimalPath = NULL;
+    start2 = clock();
+    findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
+    end2 = clock();
+
+    calculate_node(optimalPath, map, loc);
+
+    end = clock();
+    cpu_time_used1 = ((double) (end - start)) / CLOCKS_PER_SEC;
+    cpu_time_used2 = ((double) (end1 - start1)) / CLOCKS_PER_SEC;
+    cpu_time_used3 = ((double) (end2 - start2)) / CLOCKS_PER_SEC;
+
+    char wannaprint[10];
+    printf("Hey wanna get the information of the project ?\nYes/No : ");
+    scanf("%s", wannaprint);
 
 
 
 
-int main() {
+    if (strcmp(wannaprint, "yes") == 0 || strcmp(wannaprint, "Yes") == 0) {
+        printf("\n");
+    printf("      __...--~~~~~-._   _.-~~~~~--...__\n");
+    printf("    //               `V'               \\ \n");
+    printf("   //                 |                 \\ \n");
+    printf("  //__...--~~~~~~-._  |  _.-~~~~~~--...__\\ \n");
+    printf(" //__.....----~~~~._\\ | /_.~~~~----.....__\\\n");
+    printf("====================\\\\|//====================\n");
+    printf("                     `---`\n");
+    printf("///////////////// INFORMATIONS ///////////////////");
+
+    printf("\n");
+    printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
+
+
+    printf("movements randomly choosen by the algorithm: ");
+    printf(alphabet);
+    printf("\n");
+    if (optimalPath != NULL) {
+        printf("Optimal path: %s\n", optimalPath);
+        printf("Cost: %d\n", minCost);
+        printf("( ˶ˆᗜˆ˵ )\n");
+    } else
+        printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
+
+    printf("Time taken to execute the generateCombinations function : %f\n", cpu_time_used2);
+    printf("Time taken to execute the findOptimalPath function : %f\n", cpu_time_used3);
+    printf("Time taken to execute all the project: %f\n", cpu_time_used1);
+    }
+    free(alphabet);
+    return 0;
+}
+
+
+void gamble() {
+    srand(time(NULL));
+
+    const char *roulette_options[15] = {
+        "0", "1", "2", "3", "4", "5", "6", "7",
+        "8", "9", "10", "11", "12", "13", "14"
+    };
+
+    int user_guess;
+    printf("Gamble the cost (between 0 and 14): ");
+    scanf("%d", &user_guess);
+
+    if (user_guess < 0 || user_guess > 14) {
+        printf("Error: Invalid guess. Please try again.\n");
+        return 1;
+    }
+
+    int user_money;
+    printf("Enter the amount of money to gamble: ");
+    scanf("%d", &user_money);
+
+    if (user_money <= 0) {
+        printf("Error: Invalid amount. Please enter a positive value.\n");
+        return 1;
+    }
+
+    int spins = 20;
+    int delay = 100000;
+    printf("\nLUNCHING ROULETTA...\n");
+
+
+    t_map map = createMapFromFile("./maps/example1.map");
+    int Xdep = X;
+    int Ydep = Y;
+    t_orientation ori = NORTH;
+
+    t_localisation loc = loc_init(Xdep, Ydep, ori);
+    int maxDepth = 5; // max Depth for permutations
+
+    t_tree tree = createEmptyTree();
+    t_node *root = createNode("", map, loc);
+    tree.root = root;
+
+    // Search Better path
+    char final_path[50];
+    final_path[0]=' ';
+    char* alphabet;
+    t_node *optimalNode = NULL;
+    int minCost = 9000;
+    char* optimalPath = NULL;
+
+    alphabet = arrayrandomproba();
+    generateCombinations(root, alphabet, 0, maxDepth, map, loc);
+    findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
+
+    for (int i = 0; i < spins; i++) {
+        clear_screen();
+
+        int random_index = rand() % 15;
+        printf("\n\t==== RUSSIAN ROULETTA ====\n");
+        printf("\t           %s\n", roulette_options[random_index]);
+        printf("\t=============================\n");
+
+        usleep(delay);
+        delay += 20000;
+    }
+
+    clear_screen();
+    printf("\n\t===== Final Result =====\n");
+    printf("\t      %s\n", roulette_options[minCost]);
+    printf("\t=======================\n");
+
+    if (user_guess == minCost) {
+        printf("\nVictory 🎉🐒! You guessed it right.\n");
+        int payout = 2; // Payout ratio: 2:1
+        int money_won = user_money * payout;
+        printf("You won $%d!\n", money_won);
+    } else {
+        printf("\nDefeat 🙈🐵! The correct answer is %d.\n", minCost);
+        printf("You lost $%d.\n", user_money);
+    }
+}
+
+
+void loadingMenu() {
+    const char *rover = 
+        "[\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"]\n"
+        "[ \\--------MARS ROVER PROJECT - 2024-----~~~~~~~~~~~~~~ ]\n"
+        "[ |                                          {EFREI ///} ]\n"
+        "[ |      Rayan Hector Ambroise                  { /*\\/} ]\n"
+        "[ |                                          {  /* *\\}  ]\n"
+        "[ |                                           ~~~~~~~|   ]\n"
+        "[ |              __                       _          |   ]\n"
+        "[ |             /\\ `\\_                   /\\`\\_      |]\n"
+        "[ |            /  ~   \\      .          /  ~  \\      | ]\n"
+        "[ |___________/________\\_____|_________/_______\\_____| ]\n"
+        "[ |   .^^____  ^       ______|_^.^  ___ ^ .  _ .^^  .|   ]\n"
+        "[ |.^. _/   _\\_^  Q]-,  | __ |_  ^ |   \\ ^^ / \\  ^. ^|]\n"
+        "[ | ^ |   '   \\   \\_|/__\\_|_ ^ \\____\\.^ \\__\\ ^ ^.|]\n"
+        "[ |^.^\\____\\____\\^.^  (o):(o):(o)::::::::::::::::::::|]\n"
+        "[ /---------------------------------------------------\\ ]\n"
+        "  \"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\n";
+
+    printf("%s", rover);
+    usleep(5000000);
+    clear_screen();
+}
+
+
+
+void livePreview() {
     t_map map = createMapFromFile("./maps/example1.map");
 
     //printf("Map created with dimensions %d x %d\n", map.y_max, map.x_max);
@@ -396,8 +586,8 @@ int main() {
 
 
 
-    int Xdep = 2;
-    int Ydep = 4;
+    int Xdep = X;
+    int Ydep = Y;
     t_orientation ori = NORTH;
 
     t_localisation loc = loc_init(Xdep, Ydep, ori);
@@ -454,4 +644,39 @@ int main() {
     printf("Final path :%s\n",final_path);
     return 0;
 }
-#pragma clang diagnostic pop
+
+
+
+void mainMenu() {
+    int option;
+    do {
+        printf("Main Menu\n");
+        printf("1. Live Preview\n");
+        printf("2. Gamble\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &option);
+
+        switch (option) {
+            case 1:
+                livePreview();
+                break;
+            case 2:
+                gamble();
+                break;
+            case 3:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid option. Please try again.\n");
+                break;
+        }
+    } while (option != 3);
+}
+
+int main() {
+    loadingMenu();
+    clear_screen();
+    mainMenu();
+    return 0;
+}
