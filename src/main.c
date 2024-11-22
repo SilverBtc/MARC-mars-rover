@@ -204,7 +204,6 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
 
 void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** optimalPath) { // NOLINT(*-no-recursion)
     if (node == NULL) return;
-
     int len = strlen(node->path); // NOLINT(*-narrowing-conversions)
     if (node->val < *minCost ||
         (node->val == *minCost && (*optimalPath == NULL || len < strlen(*optimalPath))) ) {
@@ -413,14 +412,12 @@ int main() {
     t_tree tree = createEmptyTree();
     t_node *root = createNode("", map, loc);
     tree.root = root;
-
-
-    
-    //printTree(root, 0);
     
     // printf("Nb node: %d\n", countNodes(root));
 
     // Search Better path
+    char final_path[50];
+    final_path[0]=' ';
     char* alphabet;
     t_node *optimalNode = NULL;
     int minCost = 9000;
@@ -437,6 +434,7 @@ int main() {
             printf("Cost: %d\n", minCost);
             printf("( ˶ˆᗜˆ˵ )\n");
             calculate_node(optimalPath, map, loc);
+            strcat(final_path, optimalPath);
         } else
             printf("Sadly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
 
@@ -453,7 +451,7 @@ int main() {
         free(alphabet);
 
     }
-
+    printf("Final path :%s\n",final_path);
     return 0;
 }
 #pragma clang diagnostic pop
