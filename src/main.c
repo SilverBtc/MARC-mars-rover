@@ -15,9 +15,10 @@
 #define MAX_PATH_LENGTH 6
 
 // define x and y axis
-#define X 4
-#define Y 5
+#define X 0
+#define Y 6
 
+int u_turn_choice = -1;
 // Struct of tree
 typedef struct t_node {
     char path[MAX_PATH_LENGTH];
@@ -31,6 +32,14 @@ typedef struct s_tree
 {
     t_node *root;
 } t_tree;
+
+int get_u_turn_choice() {
+    if (u_turn_choice == -1) { // Générer une seule fois si pas encore initialisé
+        srand(time(NULL));
+        u_turn_choice = rand() % 2;
+    }
+    return u_turn_choice;
+}
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
@@ -94,79 +103,91 @@ t_tree createEmptyTree(){
     return temp;
 }
 
-// Map created with dimensions 7 x 6
-int calculate_node(char* t_path, t_map map, t_localisation loc) {
-    t_localisation phamtom_loc = loc;
-    int size = strlen(t_path), crevasse = 0; // NOLINT(*-narrowing-conversions)
-    int Cost;
-
-    for (int i = 0; i < size; i++) {
-        switch(t_path[i]) {
-            case 'A': phamtom_loc = translate(phamtom_loc, F_10);
-                if (phamtom_loc.pos.x < 0 || phamtom_loc.pos.x >= 6 || phamtom_loc.pos.y < 0 || phamtom_loc.pos.y >= 7) {
-                    // printf("Error : Rover out of range\n");
-                    return 999999;  // Impossible Path
-                }
-                Cost = map.costs[phamtom_loc.pos.y][phamtom_loc.pos.x];
-                if (Cost >= 10000)crevasse = 1;
-            break;
-            case 'B':
-                for(int step=0;step<2;step++) {
-                    phamtom_loc = translate(phamtom_loc, F_10);
-                    if (phamtom_loc.pos.x < 0 || phamtom_loc.pos.x >= 6 || phamtom_loc.pos.y < 0 || phamtom_loc.pos.y >= 7) {
-                        // printf("Error : Rover out of range\n");
-                        return 999999;  // Impossible Path
-                    }
-                    Cost = map.costs[phamtom_loc.pos.y][phamtom_loc.pos.x];
-                    if (Cost >= 10000)crevasse = 1;
-                    if (Cost == 0)break;
-                }
-                break;
-            case 'C':
-                for(int step=0;step<3;step++) {
-                    phamtom_loc = translate(phamtom_loc, F_10);
-                    if (phamtom_loc.pos.x < 0 || phamtom_loc.pos.x >= 6 || phamtom_loc.pos.y < 0 || phamtom_loc.pos.y >= 7) {
-                        // printf("Error : Rover out of range\n");
-                        return 999999;  // Impossible Path
-                    }
-                    Cost = map.costs[phamtom_loc.pos.y][phamtom_loc.pos.x];
-                    if (Cost >= 10000)crevasse = 1;
-                    if (Cost == 0)break;
-                }
-                break;
-            case 'R': phamtom_loc = translate(phamtom_loc, B_10);
-                if (phamtom_loc.pos.x < 0 || phamtom_loc.pos.x >= 6 || phamtom_loc.pos.y < 0 || phamtom_loc.pos.y >= 7) {
-                    // printf("Error : Rover out of range\n");
-                    return 999999;  // Impossible Path
-                }
-                Cost = map.costs[phamtom_loc.pos.y][phamtom_loc.pos.x];
-                if (Cost >= 10000)crevasse = 1;
-            break;
-            case 'T': phamtom_loc.ori = rotate(phamtom_loc.ori, T_RIGHT); break;
-            case 'L': phamtom_loc.ori = rotate(phamtom_loc.ori, T_LEFT); break;
-            case 'J': phamtom_loc.ori = rotate(phamtom_loc.ori, U_TURN); break;
-            default: break;
-        }
-    }
-    if (phamtom_loc.pos.x < 0 || phamtom_loc.pos.x >= 6 || phamtom_loc.pos.y < 0 || phamtom_loc.pos.y >= 7) {
-        // printf("Error : Rover out of range\n");
-        return 999999;  // Impossible Path
-    }
-    if(crevasse)return 10000; //found crevasse during forward == impossible
-
-        Cost = map.costs[phamtom_loc.pos.y][phamtom_loc.pos.x];
-    //printf("Position: (%d, %d), Orientation %d cost: %d\n", phamtom_loc.pos.x, phamtom_loc.pos.y, phamtom_loc.ori, Cost);
-
-    return Cost;
+int out_of_bounds(t_localisation loc) {
+    return loc.pos.x < 0 || loc.pos.x >= 6 || loc.pos.y < 0 || loc.pos.y >= 7;
 }
 
-t_node *createNode(char *t_path, t_map map, t_localisation loc) {
+int get_cost(t_map map, t_localisation loc) {
+    return map.costs[loc.pos.y][loc.pos.x];
+}
+
+int is_crevasse(int cost) {
+    return cost >= 10000;
+}
+
+// Map created with dimensions 7 x 6
+int calculate_node(char* t_path, t_map map, t_localisation loc,int* reg) {
+    t_localisation phantom_loc = loc;
+    int size = strlen(t_path), crevasse = 0;
+    int cost;
+
+    for (int i = 0; i < size; i++) {
+        int steps = 1;  // Default step count for 'A' and 'R'
+
+        switch (t_path[i]) {
+            case 'A':
+                steps = 1;
+                break;
+            case 'B':
+                steps = 2;
+                break;
+            case 'C':
+                steps = 3;
+                break;
+            case 'R':
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc = translate(phantom_loc, B_10);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==REG)*reg = 1;
+                if (out_of_bounds(phantom_loc)) return 999999;  // Impossible Path
+                cost = get_cost(map, phantom_loc);
+                if (is_crevasse(cost)) crevasse = 1;
+                continue;  // Skip the rest of this loop iteration
+            case 'T':
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc.ori = rotate(phantom_loc.ori, T_RIGHT);
+                continue;
+            case 'L':
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc.ori = rotate(phantom_loc.ori, T_LEFT);
+                continue;
+            case 'J':
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG) {
+                    if (get_u_turn_choice() == 0) {
+                        phantom_loc.ori = rotate(phantom_loc.ori, T_LEFT);
+                        continue;
+                    } else {
+                        phantom_loc.ori = rotate(phantom_loc.ori, T_RIGHT);
+                        continue;
+                    }
+                }
+                phantom_loc.ori = rotate(phantom_loc.ori, U_TURN);
+                continue;
+            default:
+                continue;  // Ignore invalid commands
+        }
+        if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)steps--;
+        for (int step = 0; step < steps; step++) {
+            phantom_loc = translate(phantom_loc, F_10);
+            if (out_of_bounds(phantom_loc)) return 999999;  // Impossible Path
+            cost = get_cost(map, phantom_loc);
+            if (is_crevasse(cost)) crevasse = 1;
+            if (cost == 0) break;  // Stop early if cost is 0
+        }
+        if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==REG)*reg = 1;
+    }
+
+    if (out_of_bounds(phantom_loc)) return 999999;  // Impossible Path
+    if (crevasse) return 10000;  // Found crevasse during traversal
+
+    return get_cost(map, phantom_loc);
+}
+
+t_node *createNode(char *t_path, t_map map, t_localisation loc,int max_path_lenght, int* reg) {
     t_node *node = (t_node *)malloc(sizeof(t_node));
+    strncpy(node->path, t_path, max_path_lenght - 1);
+    node->path[max_path_lenght - 1] = '\0';
 
-    strncpy(node->path, t_path, MAX_PATH_LENGTH - 1);
-    node->path[MAX_PATH_LENGTH - 1] = '\0';
-
-    node->val = calculate_node(t_path, map, loc);
+    node->val = calculate_node(t_path, map, loc, reg);
 
 
 
@@ -177,7 +198,7 @@ t_node *createNode(char *t_path, t_map map, t_localisation loc) {
     return node;
 }
 
-void generateCombinations(t_node *node, const char *alphabet, int depth, int maxDepth, t_map map, t_localisation loc) { // NOLINT(*-no-recursion)
+void generateCombinations(t_node *node, const char *alphabet, int depth, int maxDepth, t_map map, t_localisation loc,int* reg) { // NOLINT(*-no-recursion)
     if (depth == maxDepth) {
         return;
     }
@@ -194,10 +215,10 @@ void generateCombinations(t_node *node, const char *alphabet, int depth, int max
         char newPath[MAX_PATH_LENGTH];
         snprintf(newPath, MAX_PATH_LENGTH, "%s%c", node->path, alphabet[i]);
 
-        t_node *child = createNode(newPath, map, loc);
+        t_node *child = createNode(newPath, map, loc, MAX_PATH_LENGTH, reg);
         node->children[i] = child;
 
-        generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map, loc);
+        generateCombinations(child, reducedAlphabet, depth + 1, maxDepth, map, loc, reg);
     }
 }
 
@@ -282,8 +303,8 @@ void clear_screen() {
     #endif
 }
 
-t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost) {
-    t_localisation phamtom_loc = loc; // Initial position
+t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int minCost, int* reg) {
+    t_localisation phantom_loc = loc; // Initial position
     int size = strlen(t_path); // NOLINT(*-narrowing-conversions)
 
     printf(GREEN "\n=== Initial Map Preview ===\n" RESET);
@@ -307,33 +328,54 @@ t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int
                 steps = 3;
                 break;
             case 'R': // Backward 10
-                phamtom_loc = translate(phamtom_loc, B_10);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc = translate(phantom_loc, B_10);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==REG)*reg = 1;
                 clear_screen();
-                displayMap(map, phamtom_loc);
+                displayMap(map, phantom_loc);
                 printf(YELLOW "\nRover moved backward.\n" RESET);
                 usleep(1000000);
                 continue;
 
             case 'T': // Right rotation
-                phamtom_loc.ori = rotate(phamtom_loc.ori, T_RIGHT);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc.ori = rotate(phantom_loc.ori, T_RIGHT);
                 clear_screen();
-                displayMap(map, phamtom_loc);
+                displayMap(map, phantom_loc);
                 printf(CYAN "\nRover turned right.\n" RESET);
                 usleep(1000000);
                 continue;
 
             case 'L': // Left Rotation
-                phamtom_loc.ori = rotate(phamtom_loc.ori, T_LEFT);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)continue;
+                phantom_loc.ori = rotate(phantom_loc.ori, T_LEFT);
                 clear_screen();
-                displayMap(map, phamtom_loc);
+                displayMap(map, phantom_loc);
                 printf(CYAN "\nRover turned left.\n" RESET);
                 usleep(1000000);
                 continue;
 
             case 'J': // U-turn
-                phamtom_loc.ori = rotate(phamtom_loc.ori, U_TURN);
+                if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG) {
+                    if (get_u_turn_choice() == 0) {
+                        phantom_loc.ori = rotate(phantom_loc.ori, T_LEFT);
+                        clear_screen();
+                        displayMap(map, phantom_loc);
+                        printf(CYAN "\nRover turned left.\n" RESET);
+                        usleep(1000000);
+                        continue;
+                    } else {
+                        phantom_loc.ori = rotate(phantom_loc.ori, T_RIGHT);
+                        clear_screen();
+                        displayMap(map, phantom_loc);
+                        printf(CYAN "\nRover turned right.\n" RESET);
+                        usleep(1000000);
+                        continue;
+                    }
+                }
+                phantom_loc.ori = rotate(phantom_loc.ori, U_TURN);
                 clear_screen();
-                displayMap(map, phamtom_loc);
+                displayMap(map, phantom_loc);
                 printf(CYAN "\nRover made a U-turn.\n" RESET);
                 usleep(1000000);
                 continue;
@@ -341,32 +383,34 @@ t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int
             default:
                 continue;
         }
-
+        if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==ERG)steps--;
         for (int step = 0; step < steps; step++) {
-            phamtom_loc = translate(phamtom_loc, F_10);
+            phantom_loc = translate(phantom_loc, F_10);
             clear_screen();
-            displayMap(map, phamtom_loc);
+            displayMap(map, phantom_loc);
             printf(YELLOW "\nRover moved forward (%d/%d steps).\n" RESET, step + 1, steps);
             usleep(1000000);
-            if (map.soils[phamtom_loc.pos.y][phamtom_loc.pos.x] == 0)break;
+            if (map.soils[phantom_loc.pos.y][phantom_loc.pos.x] == BASE_STATION)break;
         }
+        if(map.soils[phantom_loc.pos.y][phantom_loc.pos.x]==REG)*reg = 1;
     }
 
     // final result
     clear_screen();
-    displayMap(map, phamtom_loc);
+    displayMap(map, phantom_loc);
     printf(GREEN "\n=== Final State ===\n" RESET);
     printf("Optimal path: " MAGENTA "%s\n" RESET, t_path);
     printf("Cost: " CYAN "%d\n" RESET, minCost);
     printf("( ˶ˆᗜˆ˵ )\n");
-    return phamtom_loc;
+    return phantom_loc;
 }
 
 void needinfo() {
     t_map map = createMapFromFile("./maps/example1.map");
 
-    int Xdep = 4;
-    int Ydep = 6;
+    int Xdep = X;
+    int Ydep = Y;
+    int reg = 0;
     t_orientation ori = NORTH;
 
     t_localisation loc = loc_init(Xdep, Ydep, ori);
@@ -380,11 +424,11 @@ void needinfo() {
     int maxDepth = 5;
 
     t_tree tree = createEmptyTree();
-    t_node *root = createNode("", map, loc);
+    t_node *root = createNode("", map, loc, MAX_PATH_LENGTH, &reg);
     tree.root = root;
 
     start1 = clock();
-    generateCombinations(root, alphabet, 0, maxDepth, map, loc);
+    generateCombinations(root, alphabet, 0, maxDepth, map, loc, &reg);
     end1 = clock();
 
     t_node *optimalNode = NULL;
@@ -394,7 +438,7 @@ void needinfo() {
     findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
     end2 = clock();
 
-    calculate_node(optimalPath, map, loc);
+    calculate_node(optimalPath, map, loc, &reg);
 
     end = clock();
     cpu_time_used1 = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -454,13 +498,14 @@ void gamble() {
     t_map map = createMapFromFile("./maps/example1.map");
     int Xdep = X;
     int Ydep = Y;
+    int reg=0;
     t_orientation ori = NORTH;
 
     t_localisation loc = loc_init(Xdep, Ydep, ori);
     int maxDepth = 5; // max Depth for permutations
 
     t_tree tree = createEmptyTree();
-    t_node *root = createNode("", map, loc);
+    t_node *root = createNode("", map, loc, MAX_PATH_LENGTH, &reg);
     tree.root = root;
 
     // Search Better path
@@ -472,7 +517,7 @@ void gamble() {
     char* optimalPath = NULL;
 
     alphabet = arrayrandomproba();
-    generateCombinations(root, alphabet, 0, maxDepth, map, loc);
+    generateCombinations(root, alphabet, 0, maxDepth, map, loc, &reg);
     findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
 
     for (int i = 0; i < spins; i++) {
@@ -553,6 +598,7 @@ void livePreview() {
 
     int Xdep = X;
     int Ydep = Y;
+    int reg = 0;
     t_orientation ori = NORTH;
 
     t_localisation loc = loc_init(Xdep, Ydep, ori);
@@ -565,7 +611,7 @@ void livePreview() {
     int maxDepth = 5; // max Depth for permutations
 
     t_tree tree = createEmptyTree();
-    t_node *root = createNode("", map, loc);
+    t_node *root = createNode("", map, loc, MAX_PATH_LENGTH, &reg);
     tree.root = root;
     
     // printf("Nb node: %d\n", countNodes(root));
@@ -579,7 +625,8 @@ void livePreview() {
     char* optimalPath = NULL;
     while(minCost != 0) {
         alphabet = arrayrandomproba();
-        generateCombinations(root, alphabet, 0, maxDepth, map, loc);
+        generateCombinations(root, alphabet, 0, maxDepth-reg, map, loc, &reg);
+        reg = 0;
         findOptimalPath(root, &optimalNode, &minCost, &optimalPath);
 
         printPath("Generated array: ", alphabet);
@@ -588,7 +635,7 @@ void livePreview() {
             printf("Optimal path: %s\n", optimalPath);
             printf("Cost: %d\n", minCost);
             printf("( ˶ˆᗜˆ˵ )\n");
-            calculate_node(optimalPath, map, loc);
+            calculate_node(optimalPath, map, loc, &reg);
             strcat(final_path, optimalPath);
         } else
             printf("Sadly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
@@ -598,7 +645,7 @@ void livePreview() {
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("Time taken : %f\n", cpu_time_used);
 
-        loc = live_map_preview(optimalPath, map, loc, minCost);
+        loc = live_map_preview(optimalPath, map, loc, minCost, &reg);
         if(minCost!= 0){
             printf("Draft finished without reaching the base");
             usleep(2000000);
