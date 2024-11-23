@@ -18,6 +18,19 @@
 #define X 4
 #define Y 5
 
+// Struct of tree
+typedef struct t_node {
+    char path[MAX_PATH_LENGTH];
+    int val;
+    struct t_node *children[MAX_CHILDREN];
+} t_node;
+
+
+// Struct of tree root
+typedef struct s_tree
+{
+    t_node *root;
+} t_tree;
 
 void printPath(const char *prefix, const char *string) {
     printf("%s ", prefix);
@@ -75,28 +88,11 @@ char* arrayrandomproba() {
     return arrayrandomproba;
 }
 
-// Struct of tree
-typedef struct t_node {
-    char path[MAX_PATH_LENGTH];
-    int val;
-    struct t_node *children[MAX_CHILDREN];
-} t_node;
-
-
-// Struct of tree root
-typedef struct s_tree
-{
-    t_node *root;
-} t_tree;
-
 t_tree createEmptyTree(){
     t_tree temp;
     temp.root = NULL;
     return temp;
 }
-
-
-
 
 // Map created with dimensions 7 x 6
 int calculate_node(char* t_path, t_map map, t_localisation loc) {
@@ -164,8 +160,7 @@ int calculate_node(char* t_path, t_map map, t_localisation loc) {
     return Cost;
 }
 
-
-t_node *createNode(const char *t_path, t_map map, t_localisation loc) {
+t_node *createNode(char *t_path, t_map map, t_localisation loc) {
     t_node *node = (t_node *)malloc(sizeof(t_node));
 
     strncpy(node->path, t_path, MAX_PATH_LENGTH - 1);
@@ -222,10 +217,6 @@ void findOptimalPath(t_node* node, t_node** optimalNode, int* minCost, char** op
         findOptimalPath(node->children[i], optimalNode, minCost, optimalPath);
     }
 }
-
-
-
-
 
 void printTree(t_node *node, int depth) { // NOLINT(*-no-recursion)
     if (node == NULL) return;
@@ -371,7 +362,6 @@ t_localisation live_map_preview(char* t_path, t_map map, t_localisation loc, int
     return phamtom_loc;
 }
 
-
 void needinfo() {
     t_map map = createMapFromFile("./maps/example1.map");
 
@@ -411,16 +401,8 @@ void needinfo() {
     cpu_time_used2 = ((double) (end1 - start1)) / CLOCKS_PER_SEC;
     cpu_time_used3 = ((double) (end2 - start2)) / CLOCKS_PER_SEC;
 
-    char wannaprint[10];
-    printf("Hey wanna get the information of the project ?\nYes/No : ");
-    scanf("%s", wannaprint);
 
-
-
-
-    if (strcmp(wannaprint, "yes") == 0 || strcmp(wannaprint, "Yes") == 0) {
-        printf("\n");
-    printf("      __...--~~~~~-._   _.-~~~~~--...__\n");
+    printf("\n      __...--~~~~~-._   _.-~~~~~--...__\n");
     printf("    //               `V'               \\ \n");
     printf("   //                 |                 \\ \n");
     printf("  //__...--~~~~~~-._  |  _.-~~~~~~--...__\\ \n");
@@ -430,27 +412,13 @@ void needinfo() {
     printf("///////////////// INFORMATIONS ///////////////////");
 
     printf("\n");
-    printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
-
-
-    printf("movements randomly choosen by the algorithm: ");
-    printf(alphabet);
-    printf("\n");
-    if (optimalPath != NULL) {
-        printf("Optimal path: %s\n", optimalPath);
-        printf("Cost: %d\n", minCost);
-        printf("( ˶ˆᗜˆ˵ )\n");
-    } else
-        printf("Safly no path find...\n૮(˶ㅠ︿ㅠ)ა\n");
 
     printf("Time taken to execute the generateCombinations function : %f\n", cpu_time_used2);
     printf("Time taken to execute the findOptimalPath function : %f\n", cpu_time_used3);
-    printf("Time taken to execute all the project: %f\n", cpu_time_used1);
-    }
+    printf("Time taken to execute all the project: %f\n\n", cpu_time_used1);
     free(alphabet);
-    return 0;
+    usleep(2000000);
 }
-
 
 void gamble() {
     srand(time(NULL));
@@ -466,7 +434,7 @@ void gamble() {
 
     if (user_guess < 0 || user_guess > 14) {
         printf("Error: Invalid guess. Please try again.\n");
-        return 1;
+        return;
     }
 
     int user_money;
@@ -475,7 +443,7 @@ void gamble() {
 
     if (user_money <= 0) {
         printf("Error: Invalid amount. Please enter a positive value.\n");
-        return 1;
+        return;
     }
 
     int spins = 20;
@@ -511,9 +479,9 @@ void gamble() {
         clear_screen();
 
         int random_index = rand() % 15;
-        printf("\n\t==== RUSSIAN ROULETTA ====\n");
+        printf("\n\t========= ROULLETA =========\n");
         printf("\t           %s\n", roulette_options[random_index]);
-        printf("\t=============================\n");
+        printf("\t============================\n");
 
         usleep(delay);
         delay += 20000;
@@ -522,19 +490,18 @@ void gamble() {
     clear_screen();
     printf("\n\t===== Final Result =====\n");
     printf("\t      %s\n", roulette_options[minCost]);
-    printf("\t=======================\n");
+    printf("\t========================\n");
 
     if (user_guess == minCost) {
         printf("\nVictory 🎉🐒! You guessed it right.\n");
         int payout = 2; // Payout ratio: 2:1
         int money_won = user_money * payout;
-        printf("You won $%d!\n", money_won);
+        printf("You won $%d!\n\n", money_won);
     } else {
         printf("\nDefeat 🙈🐵! The correct answer is %d.\n", minCost);
-        printf("You lost $%d.\n", user_money);
+        printf("You lost $%d.\n\n", user_money);
     }
 }
-
 
 void loadingMenu() {
     const char *rover = 
@@ -559,8 +526,6 @@ void loadingMenu() {
     usleep(5000000);
     clear_screen();
 }
-
-
 
 void livePreview() {
     t_map map = createMapFromFile("./maps/example1.map");
@@ -641,11 +606,8 @@ void livePreview() {
         free(alphabet);
 
     }
-    printf("Final path :%s\n",final_path);
-    return 0;
+    printf("Final path :%s\n\n",final_path);
 }
-
-
 
 void mainMenu() {
     int option;
@@ -653,7 +615,8 @@ void mainMenu() {
         printf("Main Menu\n");
         printf("1. Live Preview\n");
         printf("2. Gamble\n");
-        printf("3. Exit\n");
+        printf("3. More information\n");
+        printf("4. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &option);
 
@@ -665,13 +628,16 @@ void mainMenu() {
                 gamble();
                 break;
             case 3:
+                needinfo();
+                break;
+            case 4:
                 printf("Exiting...\n");
                 break;
             default:
                 printf("Invalid option. Please try again.\n");
                 break;
         }
-    } while (option != 3);
+    } while (option != 4);
 }
 
 int main() {
