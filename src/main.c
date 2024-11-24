@@ -15,7 +15,7 @@
 #define MAX_PATH_LENGTH 6
 
 // define x and y axis
-#define X 0
+#define X 4
 #define Y 6
 
 int u_turn_choice = -1;
@@ -609,7 +609,9 @@ void livePreview() {
     t_localisation loc = loc_init(Xdep, Ydep, ori);
 
     displayMap(map, loc);
-    printf("x axis: %d, y axis: %d\n", loc.pos.x, loc.pos.y);
+    printf("Rover starting at position: (%d, %d), facing: %d\n", loc.pos.x, loc.pos.y, loc.ori);
+    usleep(3000000);
+
     clock_t start, end;
     double cpu_time_used;
     start = clock();
