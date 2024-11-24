@@ -460,6 +460,11 @@ void needinfo() {
     printf("Time taken to execute the generateCombinations function : %f\n", cpu_time_used2);
     printf("Time taken to execute the findOptimalPath function : %f\n", cpu_time_used3);
     printf("Time taken to execute all the project: %f\n\n", cpu_time_used1);
+    printf("Path combinaison: %s\n", alphabet);
+    printf("Number of nodes in the tree: %d\n", countNodes(root));
+    printf("Optimal path: %s\n", optimalPath);
+    printf("Cost: %d\n", minCost);
+    printf("Rover reached the base: %s\n\n", minCost == 0 ? "Yes" : "No");
     free(alphabet);
     usleep(2000000);
 }
